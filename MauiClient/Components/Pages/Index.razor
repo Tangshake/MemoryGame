@@ -1,0 +1,183 @@
+﻿@page "/"
+@using System.ComponentModel.DataAnnotations
+@using MemoryGame.Model
+@using MemoryGame.Services
+@using System.Diagnostics
+@using Extensions
+
+@inject IRegisterApiClient RegisterApiClient
+@inject ILoginApiClient LoginApiClient
+@inject IVerifyTokenApiClient VerifyTokenApiClient
+@inject NavigationManager NavigationManager
+
+<div class="initialize">
+    <div class="login">
+        <p>LOGIN</p>
+        <EditForm Model="Login" OnValidSubmit="@OnLoginAsync">
+            <p>
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="Login.Email" />
+            </p>
+            <p>
+                <label for="password">Password</label>
+                <InputText id="password" type="password" @bind-Value="Login.Password" />
+            </p>
+
+            <button type="submit">Login</button>
+
+        </EditForm>
+
+        @if(ShowLoginFailedMessage)
+        {
+            <p>Login Failed. Try again.</p>   
+        }
+
+    </div>
+    <div class="register">
+        <p>REGISTER</p>
+        <EditForm Model="Register" OnValidSubmit="@OnRegisterAsync">
+            <AntiforgeryToken />
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <p>
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="Register.Email"/>
+            </p>
+            <p>
+                <label for="name">Name</label>
+                <InputText id="name" @bind-Value="Register.Name" />
+            </p>
+            <p>
+                <label for="password">Password</label>
+                <InputText id="password" type="password" @bind-Value="@Register.Password" />
+            </p>
+            <p>
+                <label for="repassword">RePassword</label>
+                <InputText id="repassword" type="password" @bind-Value="@Register.RePassword" />
+            </p> 
+            <button type="submit" >Register</button>
+
+        </EditForm>
+
+        @if(ShowRegistrationForm)
+        {
+            <EditForm class=@($"register-confirm {FailedVerificationBackground}") Model="Token" OnSubmit="OnRegisterVerification">
+                <p>
+                    <label for="code">Enter verification Code sent to you by Email.</label>
+                    <InputText id="code" @bind-Value="Token.Token"/>
+                </p>
+
+                <button type="submit">Verify Code</button>
+                @if (ShowVerificationFailedMessage)
+                {
+                    <p>Verification filed :(</p>
+                }
+
+            </EditForm>
+        }
+
+        @if(TokenVerificationResult)
+        {
+            <div class="register-successfull">
+                <p>Code verified successfully!</p>
+                <p>You can login.</p>
+            </div>
+        }
+
+    </div>
+</div>
+
+
+@code {
+
+    private RegisterModel Register { get; set; } = new();
+    private LoginModel Login { get; set; } = new();
+    private TokenModel Token { get; set; }
+
+    // FLags
+    private bool ShowRegistrationForm { get; set; } = false;
+    private bool ShowVerificationFailedMessage { get; set; } = false;
+    private bool ShowLoginFailedMessage { get; set; } = false;
+
+    private bool TokenVerificationResult { get; set; } = false;
+    private string FailedVerificationBackground { get; set; } = "";
+
+    private async Task OnRegisterAsync()
+    {
+        TokenVerificationResult = false;
+        ShowVerificationFailedMessage = false;
+        FailedVerificationBackground = "";
+
+        try
+        {
+            var registerResponse = await RegisterApiClient.RegisterUserAsync(Register.ToRegisterModelRequest(), "https://localhost:7216/api/register");
+
+            if (registerResponse.RegisterSuccess)
+            {
+                Token = new TokenModel { Id = registerResponse.Id };
+                ShowRegistrationForm = true;
+                Register = new();
+
+                await this.InvokeAsync(() => StateHasChanged());
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            Debug.WriteLine(e);
+        }
+
+    }
+
+    private async Task OnLoginAsync()
+    {
+        try
+        {
+            // Try to login with provided creditentials
+            var loginResponse = await LoginApiClient.LoginUserAsync(Login.ToLoginModelRequest(), "https://localhost:7294/api/login");
+
+            if (loginResponse.Success)
+            {
+                // Save Jwt token and Refresh token to the secure storage
+                await SecureStorage.Default.SetAsync("oauth_token", loginResponse.JwtToken);
+
+                //Redirect to the game page
+                NavigationManager.NavigateTo($"/game/{Login.Email}");
+            }
+            else
+            {
+                Login = new();
+                ShowLoginFailedMessage = true;
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            Debug.WriteLine(e);
+            
+            // Login failed
+            Login = new();
+            ShowLoginFailedMessage = true;
+        }
+
+    }
+
+    private async Task OnRegisterVerification()
+    {
+        Debug.WriteLine($"Verification: {Token.Id} {Token.Token}");
+        TokenVerificationResult= await VerifyTokenApiClient.VerifyTokenAsync(Token.ToVerifyCodeModelRequest(), "https://localhost:7216/api/verifytoken");
+        Debug.WriteLine(TokenVerificationResult);
+
+        if(TokenVerificationResult)
+        {
+            ShowRegistrationForm = false;
+            ShowVerificationFailedMessage = false;
+            FailedVerificationBackground = "";
+        }
+        else
+        {
+            ShowVerificationFailedMessage = true;
+            FailedVerificationBackground = "b-red";
+        }
+    }
+
+}

@@ -1,0 +1,85 @@
+﻿.initialize {
+    width: 100%;
+    height: calc(100vh - 20px );
+    background-color: #bd6a00;
+    
+    display: flex;
+    flex-direction: row;
+}
+
+.login {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid black;
+}
+
+.register {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid black;
+}
+
+.login > p,
+.register > p {
+    font-size: 2rem;
+}
+
+form {
+    padding: 20px;
+    background-color: #5bcf335a;
+}
+
+form input {
+    border: none;
+    border-bottom: 2px solid white;
+    background-color: transparent;
+    font-size: 1.2rem;
+}
+
+form input:focus,
+form input:valid {
+    outline: none;
+}
+
+form label {
+    display: block;
+    margin: 10px 0px 0px 0px;
+}
+
+form button {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    padding: 6px;
+    border: none;
+}
+
+.register-confirm {
+    background-color: #5bcf339a;
+    border: 1px solid white;
+}
+
+.register-successfull {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid blue;
+}
+
+.register-successfull p {
+    font-size: 1.3rem;
+}
+
+.b-red {
+    background-color: lightcoral;
+}

@@ -1,0 +1,28 @@
+﻿@page "/temp"
+@using System.Diagnostics
+@inject NavigationManager Navigation
+
+<div class="home-main">
+    <p>Enter your name:</p>
+    <input @onchange="OnNameChange" placeholder="Enter your name"/>
+    @if(!string.IsNullOrEmpty(Name) &&  Name.Length <= 10)
+    {
+        <button @onclick="OnPlayTheGame">Play</button>
+    }
+</div>
+
+
+
+@code {
+    private string Name { get; set; } = "Anonymous";
+
+    private void OnNameChange(ChangeEventArgs args)
+    {
+        Name = args.Value.ToString();
+    }
+
+    private void OnPlayTheGame()
+    {
+        Navigation.NavigateTo($"/game/{Name}");
+    }
+}

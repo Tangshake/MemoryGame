@@ -1,0 +1,157 @@
+﻿:root {
+    --header-height: 150px;
+}
+
+body
+{
+    background-color: lightsteelblue;
+}
+
+main {
+    background-color: lightgray;
+    width: 100%;
+    height: calc(100vh - 20px );
+}
+
+.header {
+    height: var(--header-height);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #bd6a00;
+    flex-wrap: wrap;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.header p {
+    margin: 4px 0px 0px 0px;
+}
+
+.header-user-score {
+    margin: 4px;
+    padding: 4px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.header-highscore {
+    margin: 4px;
+    padding: 4px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.header-joined {
+    margin: 4px;
+    padding: 4px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.header-user-score p:first-of-type {
+    border-bottom: 1px solid white;
+}
+
+.header-highscore p:first-of-type {
+    border-bottom: 1px solid white;
+}
+
+.header-joined p:first-of-type {
+    border-bottom: 1px solid white;
+}
+
+.game {
+    width: 100%;
+    height: calc(100% - var(--header-height));
+    /*margin-top: var(--header-height);*/
+    display: inline-grid;
+    grid-column-gap: 10px;
+    grid-row-gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+}
+
+.card {
+    background-color: lightgreen;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4rem;
+    border-radius: 10px;
+}
+
+.end {
+    width: 100%;
+    height: 100%;
+    font-size: 3rem;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    background-color: darkolivegreen;
+}
+
+.end p {
+    padding: 0px;
+    margin: 0px;
+}
+
+.end p:first-of-type {
+    border-bottom: 1px solid white;
+}
+
+.end button {
+    margin-top: 10px;
+    font-size: 3rem;
+    padding: 4px;
+}
+
+/* HOME */
+.home-main {
+    background-color: #bd6a00;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.home-main p {
+    text-transform: uppercase;
+    font-size: 1rem;
+}
+
+.home-main input {
+    border: none;
+    border-bottom: 1px solid black;
+    background-color: transparent;
+    margin: 10px;
+    font-size: 1.4rem;
+    max-width: 300px;
+}
+
+.home-main input:focus {
+    outline: none;
+}
+
+.home-main button {
+    width: 70px;
+    height: 40px;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    padding: 4px 8px;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    border-radius: 10px;
+}
+
+
+
+@media screen and (max-width: 700px) {
+    .header {
+        font-size: 1rem;
+    }
+}
