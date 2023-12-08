@@ -1,15 +1,17 @@
 ﻿using MemoryGame.Card;
 using Microsoft.AspNetCore.Components;
-using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.SignalR.Client;
 using MemoryGame.LatestScore;
-using static System.Net.WebRequestMethods;
+using MemoryGame.Model.Player;
 
 namespace MemoryGame.Components.Pages
 {
     public partial class Game : ComponentBase
     {
+        [Inject]
+        PlayerData PlayerData { get; set; }
+
         [Parameter]
         public string? Name { get; set; }
 
@@ -28,7 +30,12 @@ namespace MemoryGame.Components.Pages
         private List<Score> latesScores = new(3);
 
         // Nicks of 3 last users that joined the server
-        private List<string> latestNicks = new(3);
+        private List<JoinedUser> ActivePlayerList = new(3);
+        
+        /// <summary>
+        /// Jwt Expiration time as a DateTime
+        /// </summary>
+        private DateTime JwtExpireTime { get; set; }
 
         private IDispatcherTimer? timer;
         private int time;
@@ -62,12 +69,18 @@ namespace MemoryGame.Components.Pages
             {
                 Debug.WriteLine(e);
             }
+
+            // Get Jwt Token from Secure Storage
+            var token = await SecureStorage.Default.GetAsync("oauth_token");
+
+            // Set JwtExpirationTime
+            JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
         }
 
         protected override async Task OnParametersSetAsync()
         {
-            Debug.WriteLine($"User {Name} joined the game");
-            await SendUserNameBySignalR(Name);
+            Debug.WriteLine($"User {PlayerData.Name} joined the game");
+            await SendUserNameBySignalR(PlayerData.Name);
 
             StateHasChanged();
         }
@@ -81,7 +94,7 @@ namespace MemoryGame.Components.Pages
 
         private async Task UserJoinedTheGame(string player)
         {
-            latestNicks.Insert(0, player);
+            ActivePlayerList.Insert(0, new JoinedUser { Name = player});
 
             await this.InvokeAsync(() => StateHasChanged());
         }
@@ -122,7 +135,6 @@ namespace MemoryGame.Components.Pages
             }
         }
         #endregion
-
 
         private void InitializeTimer()
         {

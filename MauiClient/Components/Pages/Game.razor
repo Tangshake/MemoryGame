@@ -3,10 +3,20 @@
 @if(IsGameEnabled)
 {
     <div class="header">
-        <div class="header-user-score">
-            <p>@Name</p>
-            <p>Moves: @NumberOfMoves</p>
-            <p>@($"{TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}")</p>
+        <div class="header-score">
+            <div class="header-score-name">
+                <p>RESULT</p>
+            </div>
+            <div class="header-score-moves">
+                <p>Moves: @NumberOfMoves</p>
+                <p>@($"{TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}")</p>
+            </div>
+            @if (IsGameEnabled)
+            {
+                <div class="eader-score-info">
+                    Tap the card to start the game
+                </div>
+            }
         </div>
         <div class="header-highscore">
             <p>HIGHSCORE</p>
@@ -16,11 +26,27 @@
             }
         </div>
         <div class="header-joined">
-            <p>Lately joined users:</p>
-            @foreach (var item in latestNicks)
+            <div class="header-joined-title">
+                <img src="images/player.png" alt="player" />
+            </div>
+            @foreach (var item in ActivePlayerList)
             {
-                <p>@item</p>
+                <div class="header-joined-player">
+                    <p>@item.JoinTime.ToString("hh:mm:ss")</p><p>@item.Name</p>
+                </div>
             }
+        </div>
+        <div class="header-login">
+            <div class="header-login-img">
+                <img src="images/avatar.png" alt="avatar" />
+            </div>
+            <div class="header-login-name">
+                <p>Logged as:</p>
+                <p>@PlayerData.Name</p>
+            </div>
+            <div class="header-login-jwt">
+                <p>@JwtExpireTime</p>
+            </div>
         </div>
 
     </div>

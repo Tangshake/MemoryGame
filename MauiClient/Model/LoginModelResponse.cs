@@ -8,6 +8,8 @@ namespace MemoryGame.Model
 {
     public class LoginModelResponse
     {
+        public string Email { get; set; }
+        public string Name { get; set; }
         public string JwtToken { get; set; } = "";
         public string RefreshToken { get; set; } = "";
         public DateTime Created { get; set; }

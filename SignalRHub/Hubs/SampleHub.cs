@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace SignalRHub.Hubs;
@@ -13,6 +14,12 @@ public sealed class SampleHub : Hub
     {
         // Notice others that new player has joined the game
         await Clients.Others.SendAsync("UserConnectedToTheServer", $"New player has joined the game.");
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        Trace.WriteLine($"User with connection id: {Context.ConnectionId} has disconnected.");
+        await base.OnDisconnectedAsync(exception);
     }
 
     // Invoked (by Client) when player joins the game
@@ -28,4 +35,5 @@ public sealed class SampleHub : Hub
         // Send score to other players
         await Clients.All.SendAsync("UserScoreMessage", player, score, timeAsMilliseconds);
     }
+
 }

@@ -1,4 +1,5 @@
-﻿using MemoryGame.Services;
+﻿using MemoryGame.Model.Player;
+using MemoryGame.Services;
 using Microsoft.Extensions.Logging;
 
 namespace MemoryGame
@@ -16,6 +17,7 @@ namespace MemoryGame
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddScoped<PlayerData>();
             builder.Services.AddSingleton<ILoginApiClient, LoginApiClient>();
             builder.Services.AddSingleton<IRegisterApiClient, RegisterApiClient>();
             builder.Services.AddSingleton<IVerifyTokenApiClient, VerifyTokenApiClient>();

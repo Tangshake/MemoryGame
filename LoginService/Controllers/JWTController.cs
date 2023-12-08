@@ -1,16 +1,17 @@
-﻿using LoginService.Authentication.Basic.Attributes;
+﻿using LoginService.Model;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LoginService.Controllers;
-
-[Route("api/jwt")]
-public class JWTController : Controller
+namespace LoginService.Controllers
 {
+    [ApiController]
+    [Route("api")]
+    public class JwtController() : Controller
+    {
 
-    //[Route("refresh")]
-    //[BasicAuthorization]
-    //public async Task<IResult> RefreshJWTTokenAsync()
-    //{
-    //    return null;
-    //}
+        [Route("refresh/jwt")]
+        public async Task<IActionResult> RefreshJwtAsync(RefreshTokenRequest refreshTokenRequest)
+        {
+            return null;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using System.ComponentModel.DataAnnotations
 @using MemoryGame.Model
+@using MemoryGame.Model.Player
 @using MemoryGame.Services
 @using System.Diagnostics
 @using Extensions
@@ -91,6 +92,9 @@
 
 @code {
 
+    [Inject]
+    private PlayerData PlayerData { get; set; } 
+
     private RegisterModel Register { get; set; } = new();
     private LoginModel Login { get; set; } = new();
     private TokenModel Token { get; set; }
@@ -140,6 +144,10 @@
             {
                 // Save Jwt token and Refresh token to the secure storage
                 await SecureStorage.Default.SetAsync("oauth_token", loginResponse.JwtToken);
+
+                PlayerData.Email = loginResponse.Email;
+                PlayerData.Name = loginResponse.Name;
+                PlayerData.JoinTime = DateTime.Now;
 
                 //Redirect to the game page
                 NavigationManager.NavigateTo($"/game/{Login.Email}");

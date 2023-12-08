@@ -18,47 +18,177 @@ main {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    background-color: #bd6a00;
+    background-color: #212a31;
     flex-wrap: wrap;
     font-size: 1rem;
-    margin-bottom: 4px;
+    padding: 6px 6px;
 }
 
 .header p {
-    margin: 4px 0px 0px 0px;
+    /*margin: 4px 0px 0px 0px;*/
 }
 
-.header-user-score {
+.header-score {
+    width: 10%;
+    min-width: 150px;
     margin: 4px;
-    padding: 4px;
-    border: 1px solid black;
+    border-radius: 10px 10px 0 0;
+    background-color: #2d3a43;
+}
+
+.header-score-name {
+    text-align: center;
     border-radius: 10px;
+    border-radius: 10px 10px 0 0;
+    background-color: #79acca;
+    font-size: 0.7rem;
+    padding: 4px 0px;
+    color: whitesmoke;
+}
+
+.header-score-moves {
+    padding: 4px;
+    color: whitesmoke;
+}
+
+.header-score-moves p:nth-of-type(2) {
+    margin-top: 10px;
+    padding: 4px;
+    text-align: center;
 }
 
 .header-highscore {
+    width: 20%;
     margin: 4px;
     padding: 4px;
     border: 1px solid black;
-    border-radius: 10px;
+    border-radius: 10px 10px 0 0;
+    background-color: #79acca;
 }
 
 .header-joined {
+    width: 20%;
     margin: 4px;
-    padding: 4px;
-    border: 1px solid black;
-    border-radius: 10px;
+    border-radius: 10px 10px 0 0;
+    /*box-shadow: 0px 0px 4px 0.1px rgba(255, 255, 255, 1);*/
 }
 
-.header-user-score p:first-of-type {
-    border-bottom: 1px solid white;
+.header-joined p {
+    margin: 0px;
 }
+
+.header-joined-title {
+    width: 100%;
+    font-size: 0.7rem;
+    background-color: #79acca;
+    text-align:center;
+    border-radius: 10px 10px 0 0;
+}
+
+.header-joined-title img {
+    padding: 4px;
+    width: 24px;
+}
+
+.header-joined div {
+    color: white;
+}
+
+.header-joined-player {
+    width: 100%;
+    height: 16px;
+    display: inline-block;
+    overflow: hidden;
+    margin: 2px 0px;
+    padding: 0px;
+}
+
+.header-joined-player p:nth-of-type(1) {
+    display: inline-block;
+    background-color: #bd6a00;
+    font-size: 0.7rem;
+    padding: 2px;
+    width: 30%;
+    
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.header-joined-player p:nth-of-type(2) {
+    display: inline-block;
+    background-color: #2d3a43;
+    width: calc(70% - 8px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.7rem;
+    padding: 2px;
+}
+
 
 .header-highscore p:first-of-type {
     border-bottom: 1px solid white;
 }
 
-.header-joined p:first-of-type {
+.header-login {
+    color: whitesmoke;
+    background-color: #2d3a43;
+    margin: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+    border-radius: 10px 10px 0px 0px;
+}
+
+.header-login-img {
+    border-radius: 10px 10px 0px 0px;
+    width: 100%;
+    background-color: #79acca;
+    text-align: center;
     border-bottom: 1px solid white;
+}
+
+.header-login-img img {
+    margin-top: 4px;
+    width: 32px;
+}
+
+.header-login-name {
+    padding-bottom: 4px;
+    text-align: center;
+    font-size: 0.7rem;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+.header-login-name p:nth-of-type(2) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.header-login-jwt {
+    text-align: center;
+    font-size: 0.7rem;
+    width: 100%;
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+}
+
+.header-login-logout {
+    text-align: center;
+    width: 100%;
+    /*background-color: darkcyan;*/
+}
+
+.header-login-logout button {
+    border: none;
+    margin: 4px 0px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
 }
 
 .game {
