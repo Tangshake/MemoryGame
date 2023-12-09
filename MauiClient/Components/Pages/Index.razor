@@ -145,6 +145,7 @@
                 // Save Jwt token and Refresh token to the secure storage
                 await SecureStorage.Default.SetAsync("oauth_token", loginResponse.JwtToken);
 
+                PlayerData.Id = loginResponse.Id;
                 PlayerData.Email = loginResponse.Email;
                 PlayerData.Name = loginResponse.Name;
                 PlayerData.JoinTime = DateTime.Now;

@@ -4,6 +4,8 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.SignalR.Client;
 using MemoryGame.LatestScore;
 using MemoryGame.Model.Player;
+using MemoryGame.Services;
+using MemoryGame.Model;
 
 namespace MemoryGame.Components.Pages
 {
@@ -11,6 +13,9 @@ namespace MemoryGame.Components.Pages
     {
         [Inject]
         PlayerData PlayerData { get; set; }
+
+        [Inject]
+        IGameResultRepository GameResultRepository { get; set; }
 
         [Parameter]
         public string? Name { get; set; }
@@ -22,6 +27,13 @@ namespace MemoryGame.Components.Pages
         private bool IsTapEnabled { get; set; } = true;
 
         private bool IsGameEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Flag:
+        /// Set ON: when user tap the card for the first time. 
+        /// Set OFF: when game ends. 
+        /// </summary>
+        private bool HasGameStarted { get; set; } = false;
 
         //Statistics
         private int NumberOfMoves { get; set; } = 0;
@@ -183,7 +195,10 @@ namespace MemoryGame.Components.Pages
         {
             // Start the timer at first tap/click
             if (timer is not null && IsGameEnabled && !timer.IsRunning)
+            {
+                HasGameStarted = true;
                 timer.Start();
+            }
 
             if (IsTapEnabled)
             {
@@ -205,6 +220,12 @@ namespace MemoryGame.Components.Pages
                 if (timer is not null && !IsGameEnabled)
                 {
                     timer.Stop();
+                    HasGameStarted = false;
+
+                    // Add users score to the database
+                    await GameResultRepository.AddGameResultAsync(new GameResultModelRequest() { Id = PlayerData.Id, Duration = time,  Moves = NumberOfMoves }, "https://localhost:7036/api/result");
+
+                    // Inform others about user score
                     await SendUserScoreBySignalR(Name, NumberOfMoves, time);
                 }
 

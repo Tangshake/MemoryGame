@@ -21,6 +21,7 @@ namespace MemoryGame
             builder.Services.AddSingleton<ILoginApiClient, LoginApiClient>();
             builder.Services.AddSingleton<IRegisterApiClient, RegisterApiClient>();
             builder.Services.AddSingleton<IVerifyTokenApiClient, VerifyTokenApiClient>();
+            builder.Services.AddSingleton<IGameResultRepository, GameResultRepository>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

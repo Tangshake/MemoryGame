@@ -44,7 +44,7 @@ public class LoginController(ITokenRepository tokenRepository, ITokenManager tok
         var result = tokenRepository.CreateRefreshTokenAsync(user.Id, refreshToken);
 
         // Construct return object
-        var loginUserResponse = new LoginUserResponse { Email = user.Name, Name = user.Name, JwtToken = jwtToken, RefreshToken = refreshToken.Token, Created = refreshToken.Created, Expired = refreshToken.Expired, Success = true };
+        var loginUserResponse = new LoginUserResponse { Id = user.Id, Email = user.Name, Name = user.Name, JwtToken = jwtToken, RefreshToken = refreshToken.Token, Created = refreshToken.Created, Expired = refreshToken.Expired, Success = true };
 
         return Results.Ok(loginUserResponse);
     }

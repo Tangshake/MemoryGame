@@ -3,21 +3,25 @@
 @if(IsGameEnabled)
 {
     <div class="header">
+
         <div class="header-score">
             <div class="header-score-name">
                 <p>RESULT</p>
             </div>
             <div class="header-score-moves">
-                <p>Moves: @NumberOfMoves</p>
+                <p>Moves</p>
+                <p>@NumberOfMoves</p>
+                <p>Time</p>
                 <p>@($"{TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}")</p>
             </div>
-            @if (IsGameEnabled)
+            @if (!HasGameStarted)
             {
-                <div class="eader-score-info">
+                <div class="header-score-info">
                     Tap the card to start the game
                 </div>
             }
         </div>
+
         <div class="header-highscore">
             <p>HIGHSCORE</p>
             @foreach(var item in latesScores)
@@ -25,6 +29,7 @@
                 <p>@item.User @item.Result @item.Time</p>
             }
         </div>
+
         <div class="header-joined">
             <div class="header-joined-title">
                 <img src="images/player.png" alt="player" />
@@ -36,6 +41,7 @@
                 </div>
             }
         </div>
+
         <div class="header-login">
             <div class="header-login-img">
                 <img src="images/avatar.png" alt="avatar" />
