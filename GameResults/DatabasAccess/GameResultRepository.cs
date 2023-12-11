@@ -9,7 +9,7 @@ namespace GameResults.DatabasAccess
         private readonly IConfiguration configuration = configuration;
         private readonly string ConnectionStringName = "MemoryGame";
 
-        public async Task<int> AddUserResult(UserResultRequest userResultRequest)
+        public async Task<int> AddUserResultAsync(UserResultRequest userResultRequest)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace GameResults.DatabasAccess
             }
         }
 
-        public async Task<List<TopResultsResponse>> GetTopResults(int count)
+        public async Task<List<TopResultsResponse>> GetTopResultsAsync(int count)
         {
             try
             {
@@ -40,8 +40,7 @@ namespace GameResults.DatabasAccess
                 var request = @"SELECT name, duration, moves, time FROM score
                                 JOIN player 
                                 ON score.player_id = id
-                                ORDER BY result ASC LIMIT @count;
-                              ";
+                                ORDER BY duration, moves ASC LIMIT @count";
 
                 var result = await connection.QueryAsync<TopResultsResponse>(request, parameters);
 

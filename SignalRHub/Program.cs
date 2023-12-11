@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using SignalRHub.Hubs;
 using SignalRHub.JwtBearer;
 using SignalRHub.Repository.Jwt;
+using System.Buffers.Text;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,10 +30,27 @@ builder.Services.AddAuthentication(options =>
     var result = jwt.GetJwtSecretAsync().Result;
 
     var jwtBearerSettings = builder.Configuration.GetSection("JwtBearer")
-        .Get<JwtBearerSettings>();
+        .Get<JwtBearerSettings>() ?? throw new NullReferenceException();
 
-    if (jwtBearerSettings == null)
-        throw new NullReferenceException();
+    options.Events = new JwtBearerEvents
+    {
+        //For not web-based clients (like C# client) token is always sent via Authorization bearer header;
+        //For web-based clients (javascript) token is sent via query string.
+        OnMessageReceived = context =>
+        {
+            // Read the token out of the query string
+            var accessToken = context.Request.Query["access_token"];
+
+            // If the request is for our hub...
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/game-hub")))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters()
@@ -48,23 +66,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true
     };
 
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            var accessToken = context.Request.Query["access_token"];
 
-            // If the request is for our hub...
-            var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) &&
-                (path.StartsWithSegments("/game-hub")))
-            {
-                // Read the token out of the query string
-                context.Token = accessToken;
-            }
-            return Task.CompletedTask;
-        }
-    };
 });
 
 builder.Services.AddOptions<JwtBearerSettings>()

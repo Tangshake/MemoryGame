@@ -39,14 +39,14 @@ builder.Services.AddSingleton<IGameResultRepository, GameResultRepository>();
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(cfg => cfg.SwaggerEndpoint("swagger/v1/swagger.json", "v1"));
+app.UseSwaggerUI(cfg => cfg.SwaggerEndpoint("/swagger/v1/swagger.json", "v1"));
 
 app.MapPost("/api/result", async (IGameResultRepository gameResultRepository, [FromBody] UserResultRequest userResultRequest) =>
 {
     if (userResultRequest is null)
         return Results.BadRequest();
 
-    var result = await gameResultRepository.AddUserResult(userResultRequest);
+    var result = await gameResultRepository.AddUserResultAsync(userResultRequest);
 
     return result == 0 ? Results.BadRequest() : Results.Ok();
 
@@ -60,12 +60,12 @@ app.MapPost("/api/result", async (IGameResultRepository gameResultRepository, [F
     .Produces(StatusCodes.Status400BadRequest);
 
 
-app.MapGet("/api/result/{count:int}", async (IGameResultRepository gameResultRepository, int count) =>
+app.MapGet("/api/result/{count:int}", async (IGameResultRepository gameResultRepository, [FromRoute] int count) =>
 {
     if (gameResultRepository is null)
         return Results.BadRequest();
 
-    var result = await gameResultRepository.GetTopResults(count);
+    var result = await gameResultRepository.GetTopResultsAsync(count);
 
     return Results.Ok(result);
 

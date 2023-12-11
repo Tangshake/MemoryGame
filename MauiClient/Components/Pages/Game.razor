@@ -23,21 +23,36 @@
         </div>
 
         <div class="header-highscore">
-            <p>HIGHSCORE</p>
-            @foreach(var item in latesScores)
+            <div class="header-highscore-title">
+                <p>HIGHSCORE</p>
+            </div>
+            @foreach(var item in Highscore)
             {
-                <p>@item.User @item.Result @item.Time</p>
+                <div class="header-highscore-result">
+                    <p><span>@item.Name</span> t:@item.Duration m:@item.Moves</p>
+                </div>
             }
         </div>
 
+        <!-- Card showing clients that connects to the game hub -->
         <div class="header-joined">
             <div class="header-joined-title">
                 <img src="images/player.png" alt="player" />
             </div>
-            @foreach (var item in ActivePlayerList)
+            @if(IsSignalRHubAvailable)
             {
-                <div class="header-joined-player">
-                    <p>@item.JoinTime.ToString("hh:mm:ss")</p><p>@item.Name</p>
+                @foreach (var item in ActivePlayerList)
+                {
+                    <div class="header-joined-player">
+                        <p>@item.JoinTime.ToString("hh:mm:ss")</p><p>@item.Name</p>
+                    </div>
+                }
+            }
+            else
+            {
+                //SignalR connection is lost no live feed available
+                <div class="header-joined-disconnected">
+                    <p>SignalR Hub no connection!</p>
                 </div>
             }
         </div>

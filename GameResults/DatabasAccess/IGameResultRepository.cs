@@ -4,8 +4,8 @@ namespace GameResults.DatabasAccess
 {
     public interface IGameResultRepository
     {
-        Task<int> AddUserResult(UserResultRequest userResultRequest);
+        Task<int> AddUserResultAsync(UserResultRequest userResultRequest);
 
-        Task<List<TopResultsResponse>> GetTopResults(int count);
+        Task<List<TopResultsResponse>> GetTopResultsAsync(int count);
     }
 }

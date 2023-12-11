@@ -10,4 +10,6 @@ namespace MemoryGame.Services;
 public interface IGameResultRepository
 {
     Task<bool> AddGameResultAsync(GameResultModelRequest gameResultModelRequest, string requestUri);
+
+    Task<List<TopGamesResultsModelResponse>> GetTopResults(int count, string requestUri);
 }

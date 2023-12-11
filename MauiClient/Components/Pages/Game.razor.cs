@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Components;
 using System.Diagnostics;
 using Microsoft.AspNetCore.SignalR.Client;
-using MemoryGame.LatestScore;
 using MemoryGame.Model.Player;
 using MemoryGame.Services;
 using MemoryGame.Model;
+using MemoryGame.SignalR.Settings;
 
 namespace MemoryGame.Components.Pages
 {
@@ -30,6 +30,12 @@ namespace MemoryGame.Components.Pages
 
         /// <summary>
         /// Flag:
+        /// Is client connected to signalR Hub
+        /// </summary>
+        private bool IsSignalRHubAvailable{ get; set; } = false;
+
+        /// <summary>
+        /// Flag:
         /// Set ON: when user tap the card for the first time. 
         /// Set OFF: when game ends. 
         /// </summary>
@@ -39,7 +45,7 @@ namespace MemoryGame.Components.Pages
         private int NumberOfMoves { get; set; } = 0;
 
         // Latest user results - max 3 results
-        private List<Score> latesScores = new(3);
+        private List<TopGamesResultsModelResponse> Highscore = new();
 
         // Nicks of 3 last users that joined the server
         private List<JoinedUser> ActivePlayerList = new(3);
@@ -56,6 +62,7 @@ namespace MemoryGame.Components.Pages
         {
             InitializeTimer();
             GenerateNewBoard();
+            await RefreshHighscore();
 
             try
             {
@@ -67,9 +74,14 @@ namespace MemoryGame.Components.Pages
                 /* Initialize SignalR HubConnection */
                 hubConnection = new HubConnectionBuilder()
                     .WithUrl($"{baseUrl}/game-hub", options => {
-                    options.AccessTokenProvider = () => Task.FromResult(oauthToken);
+                        options.AccessTokenProvider = () => Task.FromResult(oauthToken);
                     })
+                .WithAutomaticReconnect(new SignalRRetryPolicy())
                 .Build();
+
+                hubConnection.Closed += HubConnection_Closed;
+                hubConnection.Reconnecting += HubConnection_Reconnecting;
+                hubConnection.Reconnected += HubConnection_Reconnected;
 
                 hubConnection.On<string>("UserConnectedToTheServer", UserConnectedToTheServer);
                 hubConnection.On<string>("UserJoinedTheGame", UserJoinedTheGame);
@@ -77,7 +89,12 @@ namespace MemoryGame.Components.Pages
 
                 await hubConnection.StartAsync();
 
-            }catch(Exception e)
+            }
+            catch(HttpRequestException ex)
+            {
+                Debug.WriteLine(ex);
+            }
+            catch(Exception e)
             {
                 Debug.WriteLine(e);
             }
@@ -87,6 +104,29 @@ namespace MemoryGame.Components.Pages
 
             // Set JwtExpirationTime
             JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
+
+            // Set SignlR Hub connection
+            IsSignalRHubAvailable = true;
+        }
+
+        private Task HubConnection_Reconnected(string? arg)
+        {
+            IsSignalRHubAvailable = true;
+            this.InvokeAsync(() => StateHasChanged());
+            return Task.CompletedTask;
+        }
+
+        private Task HubConnection_Reconnecting(Exception? arg)
+        {
+            IsSignalRHubAvailable = false;
+            this.InvokeAsync(() => StateHasChanged());
+            return Task.CompletedTask;
+        }
+
+        private Task HubConnection_Closed(Exception? arg)
+        {
+            IsSignalRHubAvailable = false;
+            return Task.CompletedTask;
         }
 
         protected override async Task OnParametersSetAsync()
@@ -98,12 +138,20 @@ namespace MemoryGame.Components.Pages
         }
 
         #region SignalR
-        // Received when new player joins the server
+        /// <summary>
+        /// Invoked when user joins SignalR hub
+        /// </summary>
+        /// <param name="message">Message from the hub</param>
         private void UserConnectedToTheServer(string message)
         {
             Debug.WriteLine($"{message}");
         }
 
+        /// <summary>
+        /// Invoked when user joins the game
+        /// </summary>
+        /// <param name="player">Name of the player</param>
+        /// <returns>Task</returns>
         private async Task UserJoinedTheGame(string player)
         {
             ActivePlayerList.Insert(0, new JoinedUser { Name = player});
@@ -115,8 +163,7 @@ namespace MemoryGame.Components.Pages
         // SignalR method invoked when received method from the hub
         private async Task UserScoreMessage(string player, int score, int timeAsMilliseconds)
         {
-            latesScores.Insert(0, new Score(player, score, timeAsMilliseconds));
-
+            await RefreshHighscore();
             await this.InvokeAsync(() => StateHasChanged());
             Debug.WriteLine($"Message from signalR: {player} score: {score} in: {TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}");
         }
@@ -126,7 +173,10 @@ namespace MemoryGame.Components.Pages
         {
             try
             {
-                await hubConnection.SendAsync("SendUserName", user);
+                if (hubConnection.State == HubConnectionState.Connected)
+                {
+                    await hubConnection.SendAsync("SendUserName", user);
+                }
             }
             catch (Exception e)
             {
@@ -139,7 +189,10 @@ namespace MemoryGame.Components.Pages
         {
             try
             {
-                await hubConnection.SendAsync("SendMessage", user, score, time);
+                if (hubConnection.State == HubConnectionState.Connected)
+                {
+                    await hubConnection.SendAsync("SendMessage", user, score, time);
+                }
             }
             catch(Exception e)
             {
@@ -215,6 +268,9 @@ namespace MemoryGame.Components.Pages
                 }
 
                 IsGameEnabled = !CheckIfGameEnded();
+                
+                // Hardcoded: placed only to end the game after the first card tap
+                IsGameEnabled = false;
 
                 // Stop the timer when game ends
                 if (timer is not null && !IsGameEnabled)
@@ -222,8 +278,11 @@ namespace MemoryGame.Components.Pages
                     timer.Stop();
                     HasGameStarted = false;
 
-                    // Add users score to the database
-                    await GameResultRepository.AddGameResultAsync(new GameResultModelRequest() { Id = PlayerData.Id, Duration = time,  Moves = NumberOfMoves }, "https://localhost:7036/api/result");
+                    //Add result to the database
+                    await AddGameResultToDatabase(new GameResultModelRequest() { Id = PlayerData.Id, Duration = time, Moves = NumberOfMoves });
+
+                    // Refresh score
+                    await RefreshHighscore();
 
                     // Inform others about user score
                     await SendUserScoreBySignalR(Name, NumberOfMoves, time);
@@ -253,9 +312,27 @@ namespace MemoryGame.Components.Pages
             IsTapEnabled = true;
         }
 
+        private async Task RefreshHighscore()
+        {
+            var result = await GameResultRepository.GetTopResults(3, "https://localhost:7036/api/result");
+
+            if (result is not null)
+            {
+                Highscore.Clear();
+                Highscore.AddRange(result);
+            }
+        }
+        
+        private async Task AddGameResultToDatabase(GameResultModelRequest gameResultModelRequest)
+        {
+            // Add user score to the database
+            await GameResultRepository.AddGameResultAsync(gameResultModelRequest, "https://localhost:7036/api/result");
+        }
+
         private bool CheckIfGameEnded() 
         {
             return Board.Count(x => x.Reversed) != 16 ? false : true;
         }
+       
     }
 }
