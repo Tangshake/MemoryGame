@@ -295,7 +295,7 @@ namespace MemoryGame.Components.Pages
         private async Task Check()
         {
             IsTapEnabled = false;
-            await Task.Delay(500);
+            await Task.Delay(300);
             var indexes = Board.Where(x => x.Reversed && x.Enabled == true).Select(x=>x.SlotNumber).ToList();
 
             if(indexes.Count() == 2 && Board[indexes[0]].Number == Board[indexes[1]].Number)
