@@ -1,6 +1,7 @@
 ﻿@page "/Game/{name}"
+@using MemoryGame.Components.GameBoard
 
-@if(IsGameEnabled)
+@if(!GameData.HasFinished)
 {
     <div class="header">
 
@@ -10,11 +11,11 @@
             </div>
             <div class="header-score-moves">
                 <p>Moves</p>
-                <p>@NumberOfMoves</p>
+                <p>@GameData.Moves</p>
                 <p>Time</p>
-                <p>@($"{TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}")</p>
+                <p>@($"{TimeSpan.FromSeconds(GameData.Time):hh\\:mm\\:ss}")</p>
             </div>
-            @if (!HasGameStarted)
+            @if (!GameData.HasGameStarted)
             {
                 <div class="header-score-info">
                     Tap the card to start the game
@@ -73,22 +74,10 @@
 
     </div>
     <div class="game">
-        <div class="card" @onclick="() => OnCardTap(0)">@Board[0].Show</div>
-        <div class="card" @onclick="() => OnCardTap(1)">@Board[1].Show</div>
-        <div class="card" @onclick="() => OnCardTap(2)">@Board[2].Show</div>
-        <div class="card" @onclick="() => OnCardTap(3)">@Board[3].Show</div>
-        <div class="card" @onclick="() => OnCardTap(4)">@Board[4].Show</div>
-        <div class="card" @onclick="() => OnCardTap(5)">@Board[5].Show</div>
-        <div class="card" @onclick="() => OnCardTap(6)">@Board[6].Show</div>
-        <div class="card" @onclick="() => OnCardTap(7)">@Board[7].Show</div>
-        <div class="card" @onclick="() => OnCardTap(8)">@Board[8].Show</div>
-        <div class="card" @onclick="() => OnCardTap(9)">@Board[9].Show</div>
-        <div class="card" @onclick="() => OnCardTap(10)">@Board[10].Show</div>
-        <div class="card" @onclick="() => OnCardTap(11)">@Board[11].Show</div>
-        <div class="card" @onclick="() => OnCardTap(12)">@Board[12].Show</div>
-        <div class="card" @onclick="() => OnCardTap(13)">@Board[13].Show</div>
-        <div class="card" @onclick="() => OnCardTap(14)">@Board[14].Show</div>
-        <div class="card" @onclick="() => OnCardTap(15)">@Board[15].Show</div>
+        <MemoryBoard 
+            BoardSize="4"
+            OnGameUpdate="OnGameUpdate" 
+            @ref="MemoryGameComponentReference"/>
     </div>
 }
 else
@@ -96,8 +85,8 @@ else
     <div class="end">
         <p>THE END</p>
         <p>Result:</p>
-        <p>Moves: @NumberOfMoves</p>
-        <p>Time: @($"{TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}")</p>
-        <button @onclick="@GenerateNewBoard">PLAY AGAIN</button>
+        <p>Moves: @GameData.Moves</p>
+        <p>Time: @($"{TimeSpan.FromSeconds(GameData.Time):hh\\:mm\\:ss}")</p>
+        <button @onclick="RestartTheGame">PLAY AGAIN</button> 
     </div>
 }

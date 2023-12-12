@@ -1,0 +1,10 @@
+﻿
+<div class="game-board">
+    
+    @for(int i=0; i < BoardSize * BoardSize; i++)
+    {
+        int index = i;
+        <div class="card" @onclick="() => OnCardTap(index)">@GameBoard[index].Show</div>
+    }
+
+</div>

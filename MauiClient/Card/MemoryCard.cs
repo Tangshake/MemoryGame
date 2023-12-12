@@ -16,6 +16,8 @@ namespace MemoryGame.Card
 
         public bool Reversed { get; set; } = false;
 
+        public string ReverseImage { get; set; }
+        public string ObverseImage { get; set; }
 
         public bool FilpTheCard()
         {

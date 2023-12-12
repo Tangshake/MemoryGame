@@ -98,13 +98,15 @@ main {
 .header-highscore-result p {
     padding: 2px;
     margin-bottom: 2px;
-    background-color: #19acca;
+    /*background-color: #19acca;*/
+    background-color: black;
 }
 
 .header-highscore-result p span {
-    background-color: #bd6a00;
-    padding: 2px;
-    margin-bottom: 2px;
+    display: inline-block;
+    min-width: 40px;
+    /*background-color: #bd6a00;*/
+    background-color: white;
 }
 
 .header-joined {
@@ -238,14 +240,22 @@ main {
 }
 
 .game {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
     width: 100%;
     height: calc(100% - var(--header-height));
-    /*margin-top: var(--header-height);*/
+}
+
+.game-board {
     display: inline-grid;
     grid-column-gap: 10px;
     grid-row-gap: 10px;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: 1fr 1fr 1fr 1fr;
+    width: 90%;
+    height: 90%;
 }
 
 .card {

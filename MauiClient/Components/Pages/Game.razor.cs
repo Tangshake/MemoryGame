@@ -6,27 +6,25 @@ using MemoryGame.Model.Player;
 using MemoryGame.Services;
 using MemoryGame.Model;
 using MemoryGame.SignalR.Settings;
+using MemoryGame.Model.Game;
+using MemoryGame.Components.GameBoard;
 
 namespace MemoryGame.Components.Pages
 {
     public partial class Game : ComponentBase
     {
-        [Inject]
-        PlayerData PlayerData { get; set; }
+        MemoryBoard? MemoryGameComponentReference { get; set; }
 
         [Inject]
-        IGameResultRepository GameResultRepository { get; set; }
+        PlayerData? PlayerData { get; set; }
+
+        [Inject]
+        IGameResultRepository? GameResultRepository { get; set; }
 
         [Parameter]
         public string? Name { get; set; }
 
         private HubConnection? hubConnection;
-
-        private MemoryCard[] Board { get; set; } = new MemoryCard[16];
-
-        private bool IsTapEnabled { get; set; } = true;
-
-        private bool IsGameEnabled { get; set; } = true;
 
         /// <summary>
         /// Flag:
@@ -34,15 +32,8 @@ namespace MemoryGame.Components.Pages
         /// </summary>
         private bool IsSignalRHubAvailable{ get; set; } = false;
 
-        /// <summary>
-        /// Flag:
-        /// Set ON: when user tap the card for the first time. 
-        /// Set OFF: when game ends. 
-        /// </summary>
-        private bool HasGameStarted { get; set; } = false;
-
-        //Statistics
-        private int NumberOfMoves { get; set; } = 0;
+        // Game statistics
+        private GameData GameData { get; set; } = new();
 
         // Latest user results - max 3 results
         private List<TopGamesResultsModelResponse> Highscore = new();
@@ -56,12 +47,9 @@ namespace MemoryGame.Components.Pages
         private DateTime JwtExpireTime { get; set; }
 
         private IDispatcherTimer? timer;
-        private int time;
 
         protected override async Task OnInitializedAsync()
         {
-            InitializeTimer();
-            GenerateNewBoard();
             await RefreshHighscore();
 
             try
@@ -109,6 +97,9 @@ namespace MemoryGame.Components.Pages
             IsSignalRHubAvailable = true;
         }
 
+
+        #region SignalR
+
         private Task HubConnection_Reconnected(string? arg)
         {
             IsSignalRHubAvailable = true;
@@ -137,7 +128,6 @@ namespace MemoryGame.Components.Pages
             StateHasChanged();
         }
 
-        #region SignalR
         /// <summary>
         /// Invoked when user joins SignalR hub
         /// </summary>
@@ -165,7 +155,7 @@ namespace MemoryGame.Components.Pages
         {
             await RefreshHighscore();
             await this.InvokeAsync(() => StateHasChanged());
-            Debug.WriteLine($"Message from signalR: {player} score: {score} in: {TimeSpan.FromMilliseconds(time):hh\\:mm\\:ss}");
+            Debug.WriteLine($"Message from signalR: {player} score: {score} in: {TimeSpan.FromSeconds(GameData.Time):hh\\:mm\\:ss}");
         }
 
         //SignalR method used to send message to the hub (invoking specific method on the Hub)
@@ -201,117 +191,6 @@ namespace MemoryGame.Components.Pages
         }
         #endregion
 
-        private void InitializeTimer()
-        {
-            timer = Application.Current!.Dispatcher.CreateTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(1000);
-            timer.Tick += Timer_Tick;
-        }
-
-        private void Timer_Tick(object? sender, EventArgs e)
-        {
-            time += 1000;
-            StateHasChanged();
-        }
-
-        private void GenerateNewBoard()
-        {
-            //EnableGame
-            IsGameEnabled = true;
-            time = 0;
-
-            //Reset statistics
-            NumberOfMoves = 0;
-
-            //C# 12 - new fancy way
-            List<int> spots = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ];
-            List<int> cardNo = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9];
-
-            Random random = new Random();
-
-            // Generate board - 16spots
-            for(int i=0; i < 16; i++)
-            {
-                //Random card spot
-                var max = spots.Count();
-                var randSpot = random.Next(max);
-
-                // Put the card in the spot
-                Board[spots[randSpot]] = new MemoryCard { SlotNumber = spots[randSpot], Number = cardNo[i] };
-
-                // Remove spot from the list
-                spots.RemoveAt(randSpot);
-            }
-        }
-
-        public async Task OnCardTap(int cardNumberTapped)
-        {
-            // Start the timer at first tap/click
-            if (timer is not null && IsGameEnabled && !timer.IsRunning)
-            {
-                HasGameStarted = true;
-                timer.Start();
-            }
-
-            if (IsTapEnabled)
-            {
-                Debug.WriteLine($"Card Index: {cardNumberTapped} Number: {Board[cardNumberTapped].Number}");
-
-                //Check if card can be reversed
-                var result = Board[cardNumberTapped].FilpTheCard();
-
-                // If there are two cards reversed check if they match
-                if (Board.Count(x => x.Reversed && x.Enabled == true) == 2)
-                {
-                    NumberOfMoves++;
-                    await Check();
-                }
-
-                IsGameEnabled = !CheckIfGameEnded();
-                
-                // Hardcoded: placed only to end the game after the first card tap
-                IsGameEnabled = false;
-
-                // Stop the timer when game ends
-                if (timer is not null && !IsGameEnabled)
-                {
-                    timer.Stop();
-                    HasGameStarted = false;
-
-                    //Add result to the database
-                    await AddGameResultToDatabase(new GameResultModelRequest() { Id = PlayerData.Id, Duration = time, Moves = NumberOfMoves });
-
-                    // Refresh score
-                    await RefreshHighscore();
-
-                    // Inform others about user score
-                    await SendUserScoreBySignalR(Name, NumberOfMoves, time);
-                }
-
-                Debug.WriteLine($"Game should be ended: {IsGameEnabled}");
-            }
-        }
-
-        private async Task Check()
-        {
-            IsTapEnabled = false;
-            await Task.Delay(300);
-            var indexes = Board.Where(x => x.Reversed && x.Enabled == true).Select(x=>x.SlotNumber).ToList();
-
-            if(indexes.Count() == 2 && Board[indexes[0]].Number == Board[indexes[1]].Number)
-            {
-                Board[indexes[0]].Enabled = false;
-                Board[indexes[1]].Enabled = false;
-            }
-            else
-            {
-                Board[indexes[0]].Reversed = false;
-                Board[indexes[1]].Reversed = false;
-            }
-
-            IsTapEnabled = true;
-        }
-
         private async Task RefreshHighscore()
         {
             var result = await GameResultRepository.GetTopResults(3, "https://localhost:7036/api/result");
@@ -329,10 +208,45 @@ namespace MemoryGame.Components.Pages
             await GameResultRepository.AddGameResultAsync(gameResultModelRequest, "https://localhost:7036/api/result");
         }
 
-        private bool CheckIfGameEnded() 
+        /// <summary>
+        /// Event subscribed from the game component. Called in intervals /1s
+        /// </summary>
+        /// <param name="data">Game statistics</param>
+        /// <returns>Task</returns>
+        private async Task OnGameUpdate(GameData data)
         {
-            return Board.Count(x => x.Reversed) != 16 ? false : true;
+            GameData.Moves = data.Moves;
+            GameData.Time = data.Time;
+            GameData.HasFinished = data.HasFinished;
+            GameData.HasGameStarted = data.HasGameStarted;
+
+            // If the game has ended
+            if (GameData.HasFinished)
+            {
+                // Add result to the database
+                await AddGameResultToDatabase(new()
+                {
+                    Id = PlayerData.Id,
+                    Time = DateTime.Now,
+                    Duration = GameData.Time,
+                    Moves = GameData.Moves
+                });
+
+                // Refresh Highscore
+                await RefreshHighscore();
+
+                // Notice other players about my result
+                await SendUserScoreBySignalR(PlayerData.Name, GameData.Moves, GameData.Time);
+            }
         }
-       
+
+        /// <summary>
+        /// Method to be called when we want to restart the game
+        /// </summary>
+        private void RestartTheGame()
+        {
+            MemoryGameComponentReference.RestartTheGame();
+            GameData = new();
+        }
     }
 }
