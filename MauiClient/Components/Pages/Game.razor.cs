@@ -32,10 +32,14 @@ namespace MemoryGame.Components.Pages
         /// </summary>
         private bool IsSignalRHubAvailable{ get; set; } = false;
 
-        // Game statistics
+        /// <summary>
+        /// Game statistics
+        /// </summary>
         private GameData GameData { get; set; } = new();
 
-        // Latest user results - max 3 results
+        /// <summary>
+        /// Highscore list
+        /// </summary>
         private List<TopGamesResultsModelResponse> Highscore = new();
 
         // Nicks of 3 last users that joined the server
@@ -96,7 +100,6 @@ namespace MemoryGame.Components.Pages
             // Set SignlR Hub connection
             IsSignalRHubAvailable = true;
         }
-
 
         #region SignalR
 
@@ -191,6 +194,10 @@ namespace MemoryGame.Components.Pages
         }
         #endregion
 
+        /// <summary>
+        /// Refeshes ingame highscore
+        /// </summary>
+        /// <returns></returns>
         private async Task RefreshHighscore()
         {
             var result = await GameResultRepository.GetTopResults(3, "https://localhost:7036/api/result");
@@ -245,7 +252,7 @@ namespace MemoryGame.Components.Pages
         /// </summary>
         private void RestartTheGame()
         {
-            MemoryGameComponentReference.RestartTheGame();
+            MemoryGameComponentReference?.RestartTheGame();
             GameData = new();
         }
     }

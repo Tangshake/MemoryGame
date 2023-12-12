@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -47,11 +48,14 @@ public class GameResultRepository : IGameResultRepository
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             return null;
 
+        string oauthToken = await SecureStorage.Default.GetAsync("oauth_token");
+
         var queryString = requestUri + $"/{count}";
 
         try
         {
             using HttpClient httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
 
             var response = await httpClient.GetAsync(queryString);
             
