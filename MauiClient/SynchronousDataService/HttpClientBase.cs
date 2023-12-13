@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 
@@ -12,9 +13,12 @@ namespace MemoryGame.SynchronousDataService
     {
         private readonly HttpClient httpClient = new HttpClient();
 
-        public virtual async Task<HttpResponseMessage> SendHttpPostAsync(string url, StringContent content, string token)
+        protected readonly JsonSerializerOptions options = new() { PropertyNameCaseInsensitive = true };
+
+        public virtual async Task<HttpResponseMessage> SendHttpPostAsync(string url, StringContent content, string scheme, string token)
         {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            if(scheme is not null)
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme, token);
 
             try
             {

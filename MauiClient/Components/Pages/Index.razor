@@ -5,9 +5,11 @@
 @using MemoryGame.Services
 @using System.Diagnostics
 @using Extensions
+@using MemoryGame.SynchronousDataService.Login
+@using MemoryGame.SynchronousDataService.Register
 
-@inject IRegisterApiClient RegisterApiClient
-@inject ILoginApiClient LoginApiClient
+@inject IRegisterService RegisterApiClient
+@inject ILoginService LoginRepository
 @inject IVerifyTokenApiClient VerifyTokenApiClient
 @inject NavigationManager NavigationManager
 
@@ -138,7 +140,7 @@
         try
         {
             // Try to login with provided creditentials
-            var loginResponse = await LoginApiClient.LoginUserAsync(Login.ToLoginModelRequest(), "https://localhost:7294/api/login");
+            var loginResponse = await LoginRepository.LoginUserAsync(Login.ToLoginModelRequest(), "https://localhost:7294/api/login");
 
             if (loginResponse.Success)
             {

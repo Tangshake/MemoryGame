@@ -3,16 +3,10 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
-namespace MemoryGame.SynchronousDataService.HighscoreService;
+namespace MemoryGame.SynchronousDataService.Highscore;
 
-public class HighscoreRepository : HttpClientBase, IHighscoreRepository
+public class HighscoreService : HttpClientBase, IHighscoreService
 {
-    readonly JsonSerializerOptions options = new() { PropertyNameCaseInsensitive = true };
-
-    public HighscoreRepository( )
-    {
-    }
-
     public async Task<bool> AddAsync(GameResultModelRequest gameResultModelRequest, string requestUri)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
@@ -26,7 +20,7 @@ public class HighscoreRepository : HttpClientBase, IHighscoreRepository
             "application/json"
         );
 
-        var response = await SendHttpPostAsync(requestUri, httpContent, jwtToken);
+        var response = await SendHttpPostAsync(requestUri, httpContent,"Bearer", jwtToken);
 
         if (response.IsSuccessStatusCode)
         {

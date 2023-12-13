@@ -1,12 +1,14 @@
 ﻿using MemoryGame.Model;
-using System.Diagnostics;
-using System.Net.Http.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
-namespace MemoryGame.Services
+namespace MemoryGame.SynchronousDataService.Register
 {
-    public class RegisterApiClient : IRegisterApiClient
+    public class RegisterService : HttpClientBase, IRegisterService
     {
         public async Task<RegisterModelResponse> RegisterUserAsync(RegisterModelRequest registerModelRequest, string requestUri)
         {
@@ -19,16 +21,13 @@ namespace MemoryGame.Services
                 "application/json"
                 );
 
-            using HttpClient httpClient = new HttpClient();
-            var response = await httpClient.PostAsync(requestUri, requestContent);
+            var response = await SendHttpPostAsync(requestUri, requestContent, null, null);
 
-            Debug.WriteLine($"Success: {response.StatusCode}");
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(responseContent);
 
-                return JsonSerializer.Deserialize<RegisterModelResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return JsonSerializer.Deserialize<RegisterModelResponse>(responseContent, options);
             }
 
             return new RegisterModelResponse { Id = -1, Message = "Unknown error", RegisterSuccess = false };
