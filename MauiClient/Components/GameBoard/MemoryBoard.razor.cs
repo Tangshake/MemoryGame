@@ -164,7 +164,10 @@ public partial class MemoryBoard : ComponentBase
 
             // If card is already flipped or already matched do nothing
             if (!result)
+            {
+                isTapEnabled = true;
                 return;
+            }
 
             // Increament number of player moves
             moves++;

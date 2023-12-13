@@ -1,13 +1,12 @@
-﻿using MemoryGame.Card;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using System.Diagnostics;
 using Microsoft.AspNetCore.SignalR.Client;
 using MemoryGame.Model.Player;
-using MemoryGame.Services;
 using MemoryGame.Model;
 using MemoryGame.SignalR.Settings;
 using MemoryGame.Model.Game;
 using MemoryGame.Components.GameBoard;
+using MemoryGame.SynchronousDataService.HighscoreService;
 
 namespace MemoryGame.Components.Pages
 {
@@ -19,7 +18,7 @@ namespace MemoryGame.Components.Pages
         PlayerData? PlayerData { get; set; }
 
         [Inject]
-        IGameResultRepository? GameResultRepository { get; set; }
+        IHighscoreRepository? HighscoreRepository { get; set; }
 
         [Parameter]
         public string? Name { get; set; }
@@ -200,7 +199,7 @@ namespace MemoryGame.Components.Pages
         /// <returns></returns>
         private async Task RefreshHighscore()
         {
-            var result = await GameResultRepository.GetTopResults(3, "https://localhost:7036/api/result");
+            var result = await HighscoreRepository.GetAsync(3, "https://localhost:7036/api/result");
 
             if (result is not null)
             {
@@ -212,7 +211,7 @@ namespace MemoryGame.Components.Pages
         private async Task AddGameResultToDatabase(GameResultModelRequest gameResultModelRequest)
         {
             // Add user score to the database
-            await GameResultRepository.AddGameResultAsync(gameResultModelRequest, "https://localhost:7036/api/result");
+            await HighscoreRepository.AddAsync(gameResultModelRequest, "https://localhost:7036/api/result");
         }
 
         /// <summary>

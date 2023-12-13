@@ -61,7 +61,6 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero,
         ValidateIssuer = false,
         ValidateAudience = false,
-        ValidateLifetime = true,
         ValidateIssuerSigningKey = true
     };
 });
@@ -106,7 +105,8 @@ app.UseAuthorization();
 app.UseAuthentication();
 
 
-app.MapPost("/api/result", async (IGameResultRepository gameResultRepository, [FromBody] UserResultRequest userResultRequest) =>
+app.MapPost("/api/result", [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+async (IGameResultRepository gameResultRepository, [FromBody] UserResultRequest userResultRequest) =>
 {
     if (userResultRequest is null)
         return Results.BadRequest();
@@ -115,7 +115,7 @@ app.MapPost("/api/result", async (IGameResultRepository gameResultRepository, [F
 
     return result == 0 ? Results.BadRequest() : Results.Ok();
 
-}).RequireAuthorization()
+})
     .WithOpenApi(op => new(op)
     {
         Summary = "Adds user result",

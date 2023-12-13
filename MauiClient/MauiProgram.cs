@@ -1,6 +1,8 @@
 ﻿using MemoryGame.Model.Player;
 using MemoryGame.Services;
+using MemoryGame.SynchronousDataService.HighscoreService;
 using Microsoft.Extensions.Logging;
+
 
 namespace MemoryGame
 {
@@ -21,7 +23,8 @@ namespace MemoryGame
             builder.Services.AddSingleton<ILoginApiClient, LoginApiClient>();
             builder.Services.AddSingleton<IRegisterApiClient, RegisterApiClient>();
             builder.Services.AddSingleton<IVerifyTokenApiClient, VerifyTokenApiClient>();
-            builder.Services.AddSingleton<IGameResultRepository, GameResultRepository>();
+
+            builder.Services.AddSingleton<IHighscoreRepository, HighscoreRepository>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
