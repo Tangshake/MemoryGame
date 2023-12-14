@@ -35,7 +35,7 @@ public class LoginController(ITokenRepository tokenRepository, ITokenManager tok
         var key = await tokenRepository.GetJwtSecKeyAsync();
 
         // Generate Jwt token
-        var jwtToken = tokenManager.CreateJwtToken(key, new List<Claim> { new Claim(JwtRegisteredClaimNames.Name, authorizationUserEmail) });
+        var jwtToken = tokenManager.CreateJwtToken(key, new List<Claim> { new Claim(JwtRegisteredClaimNames.Email, user.Email), new Claim(JwtRegisteredClaimNames.Name, user.Name) });
 
         // Generate Refresh token. Token lifetime set in appsettings.json
         var refreshToken = tokenManager.CreateRefreshToken(16);
@@ -44,7 +44,7 @@ public class LoginController(ITokenRepository tokenRepository, ITokenManager tok
         var result = tokenRepository.CreateRefreshTokenAsync(user.Id, refreshToken);
 
         // Construct return object
-        var loginUserResponse = new LoginUserResponse { Id = user.Id, Email = user.Name, Name = user.Name, JwtToken = jwtToken, RefreshToken = refreshToken.Token, Created = refreshToken.Created, Expired = refreshToken.Expired, Success = true };
+        var loginUserResponse = new LoginUserResponse { Id = user.Id, Email = user.Name, Name = user.Name, JwtToken = jwtToken, RefreshToken = refreshToken.Token, Created = refreshToken.Created, Expired = refreshToken.Expire, Success = true };
 
         return Results.Ok(loginUserResponse);
     }

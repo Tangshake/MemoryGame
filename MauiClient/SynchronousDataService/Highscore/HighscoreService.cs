@@ -1,4 +1,5 @@
 ﻿using MemoryGame.Model;
+using MemoryGame.Model.Player;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +8,10 @@ namespace MemoryGame.SynchronousDataService.Highscore;
 
 public class HighscoreService : HttpClientBase, IHighscoreService
 {
+    public HighscoreService(IPlayerData plyerData) : base(plyerData)
+    {
+    }
+
     public async Task<bool> AddAsync(GameResultModelRequest gameResultModelRequest, string requestUri)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
@@ -39,7 +44,7 @@ public class HighscoreService : HttpClientBase, IHighscoreService
 
         var queryString = requestUri + $"/{count}";
 
-        var response = await SendHttpGetAsync(queryString, jwtToken);
+        var response = await SendHttpGetAsync(queryString, "Bearer", jwtToken);
 
         if (response.IsSuccessStatusCode)
         {

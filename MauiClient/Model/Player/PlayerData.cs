@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MemoryGame.Model.Player;
 
-public class PlayerData
+public class PlayerData : IPlayerData
 {
     public int Id { get; set; }
     public string Email { get; set; }

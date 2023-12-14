@@ -1,4 +1,4 @@
-﻿using LoginService.AuthTokens.Model;
+﻿using LoginService.Entity;
 
 namespace LoginService.DatabaseAccess
 {
@@ -8,6 +8,6 @@ namespace LoginService.DatabaseAccess
 
         Task<int> CreateRefreshTokenAsync(int userId, RefreshToken refreshToken);
 
-        Task<string> GetRefreshTokenAsync(int userId);
+        Task<RefreshToken> GetRefreshTokenAsync(int userId);
     }
 }

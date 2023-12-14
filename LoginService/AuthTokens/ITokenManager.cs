@@ -1,4 +1,4 @@
-﻿using LoginService.AuthTokens.Model;
+﻿using LoginService.Entity;
 using System.Security.Claims;
 
 namespace LoginService.AuthTokens;

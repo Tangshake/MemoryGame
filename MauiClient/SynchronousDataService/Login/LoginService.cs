@@ -1,4 +1,5 @@
 ﻿using MemoryGame.Model;
+using MemoryGame.Model.Player;
 using System.Text;
 using System.Text.Json;
 
@@ -6,6 +7,10 @@ namespace MemoryGame.SynchronousDataService.Login
 {
     public class LoginService : HttpClientBase, ILoginService
     {
+        public LoginService(IPlayerData plyerData) : base(plyerData)
+        {
+        }
+
         public async Task<LoginModelResponse> LoginUserAsync(LoginModelRequest loginModelRequest, string requestUri)
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)

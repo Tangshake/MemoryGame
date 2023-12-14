@@ -33,5 +33,28 @@ namespace LoginService.DatabaseAccess
 
             return null;
         }
+
+        public async Task<User> GetUserByIdAsync(int id)
+        {
+            try
+            {
+                var connectionString = configuration.GetConnectionString(ConnectionStringName);
+                await using NpgsqlConnection connection = new(connectionString);
+
+                var parameters = new { id = id };
+                var query = " SELECT * FROM player WHERE id = @id";
+
+                var user = await connection.QueryFirstOrDefaultAsync<User>(query, param: parameters);
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+
+            }
+
+            return null;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using LoginService.AuthTokens.Model;
+﻿using LoginService.Entity;
 using LoginService.AuthTokens.Settings;
 using LoginService.JWT.Settings;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,8 @@ namespace LoginService.AuthTokens
 
             var securityTokenHandler = new JwtSecurityTokenHandler();
 
-            var exp = DateTime.UtcNow.AddMinutes(int.Parse(jwtBearerSettingsOptions.Value.ExpiryTime));
+            var exp = DateTime.UtcNow.AddSeconds(10);
+            //var exp = DateTime.UtcNow.AddMinutes(int.Parse(jwtBearerSettingsOptions.Value.ExpiryTime));
 
             var token = new JwtSecurityToken(
                     issuer: jwtBearerSettingsOptions.Value.Issuer,
@@ -45,7 +46,7 @@ namespace LoginService.AuthTokens
 
             var token = Convert.ToBase64String(byteArray);
 
-            return new RefreshToken { Token = token, Created = DateTime.Now, Expired = DateTime.Now.AddDays(refreshTokenSettingsOptions.Value.ExpiryTime) };
+            return new RefreshToken { Token = token, Created = DateTime.Now, Expire = DateTime.Now.AddDays(refreshTokenSettingsOptions.Value.ExpiryTime) };
         }
 
     }

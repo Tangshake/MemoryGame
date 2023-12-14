@@ -1,6 +1,6 @@
 ﻿
 using Dapper;
-using LoginService.AuthTokens.Model;
+using LoginService.Entity;
 using Npgsql;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +19,7 @@ namespace LoginService.DatabaseAccess
                 var connectionString = configuration.GetConnectionString(ConnectionStringName);
                 await using NpgsqlConnection connection = new (connectionString);
 
-                var parameters = new { player_id = userId, token = refreshToken.Token, created = refreshToken.Created, expire = refreshToken.Expired };
+                var parameters = new { player_id = userId, token = refreshToken.Token, created = refreshToken.Created, expire = refreshToken.Expire };
 
                 var query = @"INSERT INTO reftoken (player_id, token, created, expire)
                                 VALUES (@player_id, @token, @created, @expire) 
@@ -60,9 +60,26 @@ namespace LoginService.DatabaseAccess
             return null;
         }
 
-        public Task<string> GetRefreshTokenAsync(int userId)
+        public async Task<RefreshToken> GetRefreshTokenAsync(int userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var connectionString = configuration.GetConnectionString(ConnectionStringName);
+                await using NpgsqlConnection connection = new(connectionString);
+
+                var parameters = new { player_id = userId};
+
+                var query = @"SELECT * FROM reftoken WHERE player_id = @player_id;";
+
+                var result = await connection.QueryFirstOrDefaultAsync<RefreshToken>(query, param: parameters);
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return null;
+            }
         }
     }
 }

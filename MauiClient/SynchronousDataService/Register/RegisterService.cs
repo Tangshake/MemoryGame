@@ -1,15 +1,16 @@
 ﻿using MemoryGame.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using MemoryGame.Model.Player;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MemoryGame.SynchronousDataService.Register
 {
     public class RegisterService : HttpClientBase, IRegisterService
     {
+        public RegisterService(IPlayerData plyerData) : base(plyerData)
+        {
+        }
+
         public async Task<RegisterModelResponse> RegisterUserAsync(RegisterModelRequest registerModelRequest, string requestUri)
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)

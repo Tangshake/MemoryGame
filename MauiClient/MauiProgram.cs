@@ -21,7 +21,8 @@ namespace MemoryGame
                 });
 
             builder.Services.AddMauiBlazorWebView();
-            builder.Services.AddScoped<PlayerData>();
+
+            builder.Services.AddSingleton<IPlayerData, PlayerData>();
             builder.Services.AddSingleton<IVerifyTokenApiClient, VerifyTokenApiClient>();
             builder.Services.AddSingleton<IHighscoreService, HighscoreService>();
             builder.Services.AddSingleton<ILoginService, LoginService>();

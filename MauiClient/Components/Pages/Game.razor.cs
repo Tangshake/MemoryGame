@@ -15,7 +15,7 @@ namespace MemoryGame.Components.Pages
         MemoryBoard? MemoryGameComponentReference { get; set; }
 
         [Inject]
-        PlayerData? PlayerData { get; set; }
+        IPlayerData? PlayerData { get; set; }
 
         [Inject]
         IHighscoreService? HighscoreService { get; set; }
@@ -200,11 +200,20 @@ namespace MemoryGame.Components.Pages
         private async Task RefreshHighscore()
         {
             var result = await HighscoreService.GetAsync(3, "https://localhost:7036/api/result");
+            Debug.WriteLine(result.Count);
 
             if (result is not null)
             {
                 Highscore.Clear();
                 Highscore.AddRange(result);
+
+                // Get Jwt Token from Secure Storage
+                var token = await SecureStorage.Default.GetAsync("oauth_token");
+
+                // Set JwtExpirationTime
+                JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
+
+                Debug.WriteLine(JwtExpireTime);
             }
         }
         

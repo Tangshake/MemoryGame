@@ -95,7 +95,7 @@
 @code {
 
     [Inject]
-    private PlayerData PlayerData { get; set; } 
+    private IPlayerData PlayerData { get; set; } 
 
     private RegisterModel Register { get; set; } = new();
     private LoginModel Login { get; set; } = new();
@@ -108,6 +108,11 @@
 
     private bool TokenVerificationResult { get; set; } = false;
     private string FailedVerificationBackground { get; set; } = "";
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
 
     private async Task OnRegisterAsync()
     {
@@ -146,6 +151,7 @@
             {
                 // Save Jwt token and Refresh token to the secure storage
                 await SecureStorage.Default.SetAsync("oauth_token", loginResponse.JwtToken);
+                await SecureStorage.Default.SetAsync("refresh", loginResponse.RefreshToken);
 
                 PlayerData.Id = loginResponse.Id;
                 PlayerData.Email = loginResponse.Email;
