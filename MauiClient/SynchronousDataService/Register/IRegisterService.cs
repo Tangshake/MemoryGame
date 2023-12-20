@@ -10,5 +10,6 @@ namespace MemoryGame.SynchronousDataService.Register
     public interface IRegisterService
     {
         public Task<RegisterModelResponse> RegisterUserAsync(RegisterModelRequest registerModelRequest, string requestUri);
+        Task<bool> VerifyTokenAsync(VerifyTokenModelRequest verifyCodeModelRequest, string requestUri);
     }
 }

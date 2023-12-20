@@ -16,8 +16,8 @@ namespace MemoryGame.Card
 
         public bool Reversed { get; set; } = false;
 
-        public string ReverseImage { get; set; }
-        public string ObverseImage { get; set; }
+        public string ReverseImage { get; set; } = "/images/santa.png";
+        public string ObverseImage { get; set; } = "/images/";
 
         public bool FilpTheCard()
         {
@@ -37,7 +37,32 @@ namespace MemoryGame.Card
         {
             get
             {
-                return Reversed ? Number.ToString() : "X";
+                return Reversed ? $"{ObverseImage}{Number}.svg" : ImageReverse;
+            }
+        }
+
+        public string ImageReverse
+        {
+            get
+            {
+                return ReverseImage;
+            }
+        }
+
+        public string ImageObverse
+        {
+            get
+            {
+                return ObverseImage;
+            }
+        }
+
+
+        public string Class
+        {
+            get
+            {
+                return Enabled && !Reversed ? "shake": "";
             }
         }
     }

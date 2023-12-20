@@ -55,9 +55,9 @@ builder.Services.AddAuthentication()
         BasicAuthenticationDefaults.AutenticationScheme, null
     );
 
-builder.Services.AddOptions<JwtBearerSettings>()
-    .Bind(builder.Configuration.GetSection("JwtBearer"))
-    .ValidateDataAnnotations();
+//builder.Services.AddOptions<JwtBearerSettings>()
+//    .Bind(builder.Configuration.GetSection("JwtBearer"))
+//    .ValidateDataAnnotations();
 
 builder.Services.AddOptions<RefreshTokenSettings>()
     .BindConfiguration("RefreshToken")

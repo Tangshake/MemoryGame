@@ -7,6 +7,7 @@ using MemoryGame.SignalR.Settings;
 using MemoryGame.Model.Game;
 using MemoryGame.Components.GameBoard;
 using MemoryGame.SynchronousDataService.Highscore;
+using Microsoft.Extensions.Logging;
 
 namespace MemoryGame.Components.Pages
 {
@@ -22,6 +23,11 @@ namespace MemoryGame.Components.Pages
 
         [Parameter]
         public string? Name { get; set; }
+
+        /// <summary>
+        /// Timer interval
+        /// </summary>
+        private int timerInterval = 1000;
 
         private HubConnection? hubConnection;
 
@@ -55,20 +61,60 @@ namespace MemoryGame.Components.Pages
         {
             await RefreshHighscore();
 
+            await ConnectToSignalRHub();
+
+            // Get Jwt Token from Secure Storage
+            var token = await SecureStorage.Default.GetAsync($"oauth_token_{PlayerData.Id}");
+
+            // Set JwtExpirationTime
+            JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
+
+            // Set SignlR Hub connection
+            IsSignalRHubAvailable = true;
+
+            InitializeTimer();
+
+            Debug.WriteLine(PlayerData.ToString());
+        }
+
+        private async Task ConnectToSignalRHub()
+        {
+            await RefreshHighscore();
+
             try
             {
-                string oauthToken = await SecureStorage.Default.GetAsync("oauth_token");
+                string oauthToken = await SecureStorage.Default.GetAsync($"oauth_token_{PlayerData.Id}");
 
-                var baseUrl = DeviceInfo.Platform == DevicePlatform.Android ? 
-                        "http://10.0.2.2:5106" : "https://localhost:5106";
+                var baseUrl = DeviceInfo.Platform == DevicePlatform.Android ?
+                        "https://10.0.2.2:5106" : "https://localhost:5106";
 
                 /* Initialize SignalR HubConnection */
                 hubConnection = new HubConnectionBuilder()
-                    .WithUrl($"{baseUrl}/game-hub", options => {
+                    .WithUrl($"{baseUrl}/game-hub", options =>
+                    {
                         options.AccessTokenProvider = () => Task.FromResult(oauthToken);
+
+#if DEBUG
+                        options.HttpMessageHandlerFactory = (message) =>
+                        {
+                            if (message is HttpClientHandler clientHandler)
+                                // always verify the SSL certificate
+                                clientHandler.ServerCertificateCustomValidationCallback +=
+                                    (sender, certificate, chain, sslPolicyErrors) => { return true; };
+                            return message;
+                        };
+
+                        options.WebSocketConfiguration = wsc => wsc.RemoteCertificateValidationCallback = (sender, certificate, chain, policyErrors) => true;
+
+#endif
                     })
-                .WithAutomaticReconnect(new SignalRRetryPolicy())
-                .Build();
+                    .ConfigureLogging(logging => {
+                        // Set the log level of signalr stuffs
+                        logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
+                    })
+                    //.WithAutomaticReconnect(new SignalRRetryPolicy())
+                    .WithAutomaticReconnect([TimeSpan.FromSeconds(20)])
+                    .Build();
 
                 hubConnection.Closed += HubConnection_Closed;
                 hubConnection.Reconnecting += HubConnection_Reconnecting;
@@ -80,24 +126,41 @@ namespace MemoryGame.Components.Pages
 
                 await hubConnection.StartAsync();
 
+                // Set SignlR Hub connection
+                IsSignalRHubAvailable = true;
+
+                await InvokeAsync(() => StateHasChanged());
             }
-            catch(HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 Debug.WriteLine(ex);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.WriteLine(e);
             }
+        }
 
-            // Get Jwt Token from Secure Storage
-            var token = await SecureStorage.Default.GetAsync("oauth_token");
+        /// <summary>
+        /// Timer initialization
+        /// </summary>
+        private void InitializeTimer()
+        {
+            timer = Application.Current!.Dispatcher.CreateTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
+            timer.Tick += Timer_Tick;
 
-            // Set JwtExpirationTime
-            JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
+            //timer.Start();
+        }
 
-            // Set SignlR Hub connection
-            IsSignalRHubAvailable = true;
+        /// <summary>
+        /// Timer event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void Timer_Tick(object? sender, EventArgs e)
+        {
+            Debug.WriteLine(JwtExpireTime.Subtract(DateTime.Now));
         }
 
         #region SignalR
@@ -106,20 +169,31 @@ namespace MemoryGame.Components.Pages
         {
             IsSignalRHubAvailable = true;
             this.InvokeAsync(() => StateHasChanged());
+            Debug.WriteLine("SignalR->Reconnected");
             return Task.CompletedTask;
         }
 
         private Task HubConnection_Reconnecting(Exception? arg)
         {
             IsSignalRHubAvailable = false;
+            Debug.WriteLine("SignalR->Reconnecting");
             this.InvokeAsync(() => StateHasChanged());
             return Task.CompletedTask;
         }
 
-        private Task HubConnection_Closed(Exception? arg)
+        private async Task HubConnection_Closed(Exception? arg)
         {
+            Debug.WriteLine("SignalR->Closed");
             IsSignalRHubAvailable = false;
-            return Task.CompletedTask;
+            
+            if (hubConnection is not null)
+            {
+                hubConnection.Closed -= HubConnection_Closed;
+                hubConnection.Reconnecting -= HubConnection_Reconnecting;
+                hubConnection.Reconnected -= HubConnection_Reconnected;
+            }
+
+            await ConnectToSignalRHub();
         }
 
         protected override async Task OnParametersSetAsync()
@@ -150,7 +224,6 @@ namespace MemoryGame.Components.Pages
 
             await this.InvokeAsync(() => StateHasChanged());
         }
-
 
         // SignalR method invoked when received method from the hub
         private async Task UserScoreMessage(string player, int score, int timeAsMilliseconds)
@@ -199,16 +272,15 @@ namespace MemoryGame.Components.Pages
         /// <returns></returns>
         private async Task RefreshHighscore()
         {
-            var result = await HighscoreService.GetAsync(3, "https://localhost:7036/api/result");
-            Debug.WriteLine(result.Count);
-
+            var result = await HighscoreService.GetAsync(3, Endpoints.Configuration.HighscoreEndpoint);
+            
             if (result is not null)
             {
                 Highscore.Clear();
                 Highscore.AddRange(result);
 
                 // Get Jwt Token from Secure Storage
-                var token = await SecureStorage.Default.GetAsync("oauth_token");
+                var token = await SecureStorage.Default.GetAsync($"oauth_token_{PlayerData.Id}");
 
                 // Set JwtExpirationTime
                 JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
@@ -217,10 +289,15 @@ namespace MemoryGame.Components.Pages
             }
         }
         
+        /// <summary>
+        /// Adds game results to the database
+        /// </summary>
+        /// <param name="gameResultModelRequest"></param>
+        /// <returns>Task</returns>
         private async Task AddGameResultToDatabase(GameResultModelRequest gameResultModelRequest)
         {
             // Add user score to the database
-            await HighscoreService.AddAsync(gameResultModelRequest, "https://localhost:7036/api/result");
+            await HighscoreService.AddAsync(gameResultModelRequest, Endpoints.Configuration.HighscoreEndpoint);
         }
 
         /// <summary>

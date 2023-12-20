@@ -25,8 +25,8 @@
 
         <div class="header-highscore">
             <div class="header-highscore-title">
-                <p>HIGHSCORE</p>
-                <button @onclick="RefreshHighscore">R</button>
+                <p>HIGHSCORE <button @onclick="RefreshHighscore">R</button></p>
+                
             </div>
             @foreach(var item in Highscore)
             {
@@ -39,14 +39,15 @@
         <!-- Card showing clients that connects to the game hub -->
         <div class="header-joined">
             <div class="header-joined-title">
-                <img src="images/player.png" alt="player" />
+                <p>Players</p>
+                @* <img src="images/player.png" alt="player" /> *@
             </div>
             @if(IsSignalRHubAvailable)
             {
                 @foreach (var item in ActivePlayerList)
                 {
                     <div class="header-joined-player">
-                        <p>@item.JoinTime.ToString("hh:mm:ss")</p><p>@item.Name</p>
+                        <p><span>@item.JoinTime.ToString("hh:mm:ss")</span>@item.Name</p>
                     </div>
                 }
             }

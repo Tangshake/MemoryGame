@@ -17,7 +17,15 @@ namespace MemoryGame.SynchronousDataService
 {
     public abstract class HttpClientBase
     {
-        private readonly HttpClient httpClient = new HttpClient();
+#if DEBUG
+        private readonly HttpClient httpClient = new HttpClient(new HttpClientHandler()
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        });
+#else
+        private readonly HttpClient httpClient = new HttpClient(new HttpClientHandler();
+#endif
+
         protected readonly JsonSerializerOptions options = new() { PropertyNameCaseInsensitive = true };
         protected IPlayerData playerData;
 
@@ -25,6 +33,8 @@ namespace MemoryGame.SynchronousDataService
         {
             this.playerData = playerData;
         }
+
+
 
         public virtual async Task<HttpResponseMessage> SendHttpPostAsync(string url, StringContent content, string scheme, string token)
         {
@@ -37,9 +47,10 @@ namespace MemoryGame.SynchronousDataService
             {
                 var refreshed = await RefreshJwtIfNeeded();
                 if(refreshed)
-                    token = await SecureStorage.Default.GetAsync("oauth_token");
+                    token = await SecureStorage.Default.GetAsync($"oauth_token_{playerData.Id}");
             }
 
+            
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme, token);
 
             try
@@ -63,7 +74,7 @@ namespace MemoryGame.SynchronousDataService
             {
                 var refreshed = await RefreshJwtIfNeeded();
                 if (refreshed)
-                    token = await SecureStorage.Default.GetAsync("oauth_token");
+                    token = await SecureStorage.Default.GetAsync($"oauth_token_{playerData.Id}");
             }
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(scheme, token);
@@ -79,20 +90,23 @@ namespace MemoryGame.SynchronousDataService
         }
 
         /// <summary>
-        /// Refreshes Jwt token if it expire
+        /// Refreshes Jwt token if it expires
         /// </summary>
-        /// <returns>Task</returns>
+        /// <returns>Value whether token has been refreshed or not</returns>
         public virtual async Task<bool> RefreshJwtIfNeeded()
         {
+            Debug.WriteLine("Check if Jwt RefreshNeeded");
+
             // Get jwt token from the 
-            var jwtToken = await SecureStorage.Default.GetAsync("oauth_token");
-            var refreshToken = await SecureStorage.Default.GetAsync("refresh");
+            var jwtToken = await SecureStorage.Default.GetAsync($"oauth_token_{playerData.Id}");
+            var refreshToken = await SecureStorage.Default.GetAsync($"refresh_{playerData.Id}");
 
             // Check if jwt needs to be refreshed
             var isRefreshNeeded = JwtInformationExtractor.Expired(jwtToken);
 
             if(isRefreshNeeded)
             {
+
                 var requestContent = new StringContent(
                 JsonSerializer.Serialize(new RefreshTokenRequestModel() {userId = playerData.Id, JwtToken = jwtToken, RefreshToken = refreshToken}),
                 Encoding.UTF8,
@@ -100,18 +114,22 @@ namespace MemoryGame.SynchronousDataService
                 );
 
                 // Send request to refresh jwt token
-                var response = await httpClient.PostAsync("https://localhost:7294/api/refresh/jwt", requestContent);
+                var response = await httpClient.PostAsync(Endpoints.Configuration.JwtRefreshEndpoint, requestContent);
 
                 // Read the reponse
                 var responseContent = await response.Content.ReadAsStringAsync();
+
+                if(string.IsNullOrEmpty(responseContent))
+                    Debug.WriteLine($"Check if Jwt RefreshNeeded response: {responseContent}");
 
                 // Deserialize response
                 var refreshTokenResponseModel = JsonSerializer.Deserialize<RefreshTokenResponseModel>(responseContent, options);
 
                 // Set both tokens
-                await SecureStorage.Default.SetAsync("oauth_token", refreshTokenResponseModel.JwtToken);
-                await SecureStorage.Default.SetAsync("refresh", refreshTokenResponseModel.RefreshToken);
+                await SecureStorage.Default.SetAsync($"oauth_token_{playerData.Id}", refreshTokenResponseModel.JwtToken);
+                await SecureStorage.Default.SetAsync($"refresh_{playerData.Id}", refreshTokenResponseModel.RefreshToken);
 
+                Debug.WriteLine($"Check if Jwt RefreshNeeded: {isRefreshNeeded}");
                 // Confirm that jwt was refreshed
                 return true;
 

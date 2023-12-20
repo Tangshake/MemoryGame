@@ -1,16 +1,15 @@
 ﻿@page "/"
+
 @using System.ComponentModel.DataAnnotations
 @using MemoryGame.Model
 @using MemoryGame.Model.Player
-@using MemoryGame.Services
 @using System.Diagnostics
 @using Extensions
 @using MemoryGame.SynchronousDataService.Login
 @using MemoryGame.SynchronousDataService.Register
 
-@inject IRegisterService RegisterApiClient
-@inject ILoginService LoginRepository
-@inject IVerifyTokenApiClient VerifyTokenApiClient
+@inject IRegisterService RegisterService
+@inject ILoginService LoginService
 @inject NavigationManager NavigationManager
 
 <div class="initialize">
@@ -94,8 +93,8 @@
 
 @code {
 
-    [Inject]
-    private IPlayerData PlayerData { get; set; } 
+        [Inject]
+        private IPlayerData PlayerData { get; set; } 
 
     private RegisterModel Register { get; set; } = new();
     private LoginModel Login { get; set; } = new();
@@ -122,7 +121,7 @@
 
         try
         {
-            var registerResponse = await RegisterApiClient.RegisterUserAsync(Register.ToRegisterModelRequest(), "https://localhost:7216/api/register");
+            var registerResponse = await RegisterService.RegisterUserAsync(Register.ToRegisterModelRequest(), "https://localhost:7216/api/register");
 
             if (registerResponse.RegisterSuccess)
             {
@@ -145,13 +144,13 @@
         try
         {
             // Try to login with provided creditentials
-            var loginResponse = await LoginRepository.LoginUserAsync(Login.ToLoginModelRequest(), "https://localhost:7294/api/login");
+            var loginResponse = await LoginService.LoginUserAsync(Login.ToLoginModelRequest(), Endpoints.Configuration.LoginEndpoint);
 
             if (loginResponse.Success)
             {
                 // Save Jwt token and Refresh token to the secure storage
-                await SecureStorage.Default.SetAsync("oauth_token", loginResponse.JwtToken);
-                await SecureStorage.Default.SetAsync("refresh", loginResponse.RefreshToken);
+                await SecureStorage.Default.SetAsync($"oauth_token_{loginResponse.Id}", loginResponse.JwtToken);
+                await SecureStorage.Default.SetAsync($"refresh_{loginResponse.Id}", loginResponse.RefreshToken);
 
                 PlayerData.Id = loginResponse.Id;
                 PlayerData.Email = loginResponse.Email;
@@ -160,6 +159,7 @@
 
                 //Redirect to the game page
                 NavigationManager.NavigateTo($"/game/{Login.Email}");
+
             }
             else
             {
@@ -181,7 +181,7 @@
     private async Task OnRegisterVerification()
     {
         Debug.WriteLine($"Verification: {Token.Id} {Token.Token}");
-        TokenVerificationResult= await VerifyTokenApiClient.VerifyTokenAsync(Token.ToVerifyCodeModelRequest(), "https://localhost:7216/api/verifytoken");
+        TokenVerificationResult= await RegisterService.VerifyTokenAsync(Token.ToVerifyCodeModelRequest(), "https://localhost:7216/api/verifytoken");
         Debug.WriteLine(TokenVerificationResult);
 
         if(TokenVerificationResult)

@@ -17,7 +17,7 @@ public class HighscoreService : HttpClientBase, IHighscoreService
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             return false;
 
-        string? jwtToken = await SecureStorage.Default.GetAsync("oauth_token");
+        string? jwtToken = await SecureStorage.Default.GetAsync($"oauth_token_{playerData.Id}");
 
         var httpContent = new StringContent(
             JsonSerializer.Serialize(gameResultModelRequest),
@@ -37,10 +37,12 @@ public class HighscoreService : HttpClientBase, IHighscoreService
 
     public async Task<List<TopGamesResultsModelResponse>> GetAsync(int count, string requestUri)
     {
+        Debug.WriteLine("Get Highscore Top Results");
+
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             return null;
 
-        string? jwtToken = await SecureStorage.Default.GetAsync("oauth_token");
+        string? jwtToken = await SecureStorage.Default.GetAsync($"oauth_token_{playerData.Id}");
 
         var queryString = requestUri + $"/{count}";
 
@@ -48,10 +50,12 @@ public class HighscoreService : HttpClientBase, IHighscoreService
 
         if (response.IsSuccessStatusCode)
         {
+            Debug.WriteLine("Get Highscore Top Results: Success");
             var responseContent = await response.Content.ReadAsStringAsync();
 
             var topGameResults = JsonSerializer.Deserialize<List<TopGamesResultsModelResponse>>(responseContent, options);
 
+            Debug.WriteLine($"Get Highscore Top Results: {responseContent}");
             return topGameResults;
         }
 

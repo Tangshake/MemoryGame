@@ -12,4 +12,9 @@ public class PlayerData : IPlayerData
     public string Email { get; set; }
     public string Name { get; set; }
     public DateTime JoinTime { get; set; } = DateTime.Now;
+
+    public override string ToString()
+    {
+        return $"{Id} {Email} {Name} {JoinTime.ToString()}";
+    }
 }

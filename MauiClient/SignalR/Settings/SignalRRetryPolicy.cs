@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,9 @@ public class SignalRRetryPolicy : IRetryPolicy
     {
         if (retryContext.ElapsedTime < TimeSpan.FromSeconds(60))
         {
-            return TimeSpan.FromSeconds(_random.NextDouble() * 10);
+            var d = _random.NextDouble();
+            Debug.WriteLine($"Reconnecting time: {d} Total time reconnecting: {retryContext.ElapsedTime}");
+            return TimeSpan.FromSeconds( d * 10);
         }
         else
         {

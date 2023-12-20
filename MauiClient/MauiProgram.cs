@@ -1,5 +1,4 @@
 ﻿using MemoryGame.Model.Player;
-using MemoryGame.Services;
 using MemoryGame.SynchronousDataService.Highscore;
 using MemoryGame.SynchronousDataService.Login;
 using MemoryGame.SynchronousDataService.Register;
@@ -23,7 +22,6 @@ namespace MemoryGame
             builder.Services.AddMauiBlazorWebView();
 
             builder.Services.AddSingleton<IPlayerData, PlayerData>();
-            builder.Services.AddSingleton<IVerifyTokenApiClient, VerifyTokenApiClient>();
             builder.Services.AddSingleton<IHighscoreService, HighscoreService>();
             builder.Services.AddSingleton<ILoginService, LoginService>();
             builder.Services.AddSingleton<IRegisterService, RegisterService>();

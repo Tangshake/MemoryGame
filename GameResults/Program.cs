@@ -108,6 +108,7 @@ app.UseAuthentication();
 app.MapPost("/api/result", [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 async (IGameResultRepository gameResultRepository, [FromBody] UserResultRequest userResultRequest) =>
 {
+    
     if (userResultRequest is null)
         return Results.BadRequest();
 
