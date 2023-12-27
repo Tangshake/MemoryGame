@@ -272,7 +272,7 @@ namespace MemoryGame.Components.Pages
         /// <returns></returns>
         private async Task RefreshHighscore()
         {
-            var result = await HighscoreService.GetAsync(3, Endpoints.Configuration.HighscoreEndpoint);
+            var result = await HighscoreService.GetAsync(3, PlayerData.Id, Endpoints.Configuration.HighscoreEndpoint);
             
             if (result is not null)
             {

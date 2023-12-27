@@ -30,10 +30,10 @@ public static class JwtInformationExtractor
         return string.Empty;
     }
 
-    public static bool Expired(string token)
+    public static bool? Expired(string token)
     {
         if (string.IsNullOrEmpty(token))
-            return true;
+            return null;
 
         var exp = ExctractClaim(token, "exp");
 

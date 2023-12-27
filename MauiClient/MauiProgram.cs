@@ -1,5 +1,7 @@
 ﻿using MemoryGame.Model.Player;
+using MemoryGame.SynchronousDataService;
 using MemoryGame.SynchronousDataService.Highscore;
+using MemoryGame.SynchronousDataService.JwtRefresh;
 using MemoryGame.SynchronousDataService.Login;
 using MemoryGame.SynchronousDataService.Register;
 using Microsoft.Extensions.Logging;
@@ -22,9 +24,10 @@ namespace MemoryGame
             builder.Services.AddMauiBlazorWebView();
 
             builder.Services.AddSingleton<IPlayerData, PlayerData>();
-            builder.Services.AddSingleton<IHighscoreService, HighscoreService>();
             builder.Services.AddSingleton<ILoginService, LoginService>();
+            builder.Services.AddSingleton<IJwtRefreshService, JwtRefreshService>();
             builder.Services.AddSingleton<IRegisterService, RegisterService>();
+            builder.Services.AddSingleton<IHighscoreService, HighscoreService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
