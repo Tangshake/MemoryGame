@@ -85,8 +85,7 @@ namespace MemoryGame.Components.Pages
             {
                 string oauthToken = await SecureStorage.Default.GetAsync($"oauth_token_{PlayerData.Id}");
 
-                var baseUrl = DeviceInfo.Platform == DevicePlatform.Android ?
-                        "https://10.0.2.2:5106" : "https://localhost:5106";
+                var baseUrl = Endpoints.Configuration.SignlRHub;
 
                 /* Initialize SignalR HubConnection */
                 hubConnection = new HubConnectionBuilder()
@@ -285,7 +284,7 @@ namespace MemoryGame.Components.Pages
                 // Set JwtExpirationTime
                 JwtExpireTime = Tools.JwtBearerToken.JwtBearerDataExtractor.GetExpireDate(token!);
 
-                Debug.WriteLine(JwtExpireTime);
+                Debug.WriteLine("Jwt Token will expire at: "+JwtExpireTime);
             }
         }
         

@@ -15,7 +15,15 @@ namespace MemoryGame.SynchronousDataService
 
         protected ApiBase()
         {
-            client = new HttpClient();
+#if DEBUG
+        client = new HttpClient(new HttpClientHandler()
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        });
+#else
+        client = new HttpClient();
+#endif
+        
             jsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         }
     }

@@ -67,7 +67,7 @@ public partial class MemoryBoard : ComponentBase
         GameBoard = new MemoryCard[BoardSize * BoardSize];
         GenerateNewGameBoard();
 
-        Debug.WriteLine("Initialize");
+        Debug.WriteLine("Initialize Memory Board");
     }
 
     /// <summary>

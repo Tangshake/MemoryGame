@@ -68,6 +68,9 @@ public class HighscoreService(IJwtRefreshService jwtRefreshService) : ApiBase, I
     {
         Debug.WriteLine("Get Highscore Top Results");
 
+        Debug.WriteLine($"Network Access: {Connectivity.NetworkAccess}");
+
+        // On Windows10 there is a bug. Connectivity called not on a main thread returns status Unknown!
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             return Enumerable.Empty<TopGamesResultsModelResponse>().ToList();
 
@@ -117,6 +120,8 @@ public class HighscoreService(IJwtRefreshService jwtRefreshService) : ApiBase, I
             Debug.WriteLine($"Get Highscore Top Results: {responseContent}");
             return topGameResults;
         }
+
+        Debug.WriteLine("Get Highscore Top Results: Failed "+response.StatusCode);
 
         return null;
     }
