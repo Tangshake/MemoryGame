@@ -143,8 +143,10 @@
     {
         try
         {
+            string endpoint = Endpoints.Configuration.LoginEndpoint;
+
             // Try to login with provided creditentials
-            var loginResponse = await LoginService.LoginUserAsync(Login.ToLoginModelRequest(), Endpoints.Configuration.LoginEndpoint);
+            var loginResponse = await LoginService.LoginUserAsync(Login.ToLoginModelRequest(), endpoint);
 
             if (loginResponse.Success)
             {

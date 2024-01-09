@@ -34,10 +34,12 @@ public class LoginController(ITokenRepository tokenRepository, ITokenManager tok
                     )
                 );
 
-        var authorizationUserEmail = authorization64Decoded.Split(new[] { ':' }, 2)[0];
+        var authorizationUserDetails = authorization64Decoded.Split(new[] { ':' }, 2);
 
-        if(authorizationUserEmail is null || authorizationUserEmail.Length != 2)
+        if(authorizationUserDetails is null || authorizationUserDetails.Length != 2)
             return Results.BadRequest();
+
+        var authorizationUserEmail = authorizationUserDetails[0];
 
         // Get user from database
         var user = await userRepository.GetUserByEmailAsync(authorizationUserEmail);
