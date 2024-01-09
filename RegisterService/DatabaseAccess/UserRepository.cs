@@ -98,6 +98,11 @@ namespace RegisterService.DatabaseAccess
             }
         }
 
+        /// <summary>
+        /// Query database for a user with provided email address
+        /// </summary>
+        /// <param name="email">Email address</param>
+        /// <returns>-1:error, 0:user not found, 1:user found</returns>
         public async Task<int> UserExistsByEmailAsync(string email)
         {
             try

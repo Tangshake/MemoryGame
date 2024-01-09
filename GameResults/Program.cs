@@ -130,7 +130,7 @@ async (IGameResultRepository gameResultRepository, [FromBody] UserResultRequest 
 app.MapGet("/api/result/{count:int}", [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 async (IGameResultRepository gameResultRepository, [FromRoute] int count) =>
 {
-    if (gameResultRepository is null)
+    if (gameResultRepository is null || count <= 0)
         return Results.BadRequest();
 
     var result = await gameResultRepository.GetTopResultsAsync(count);

@@ -17,7 +17,7 @@ public class TokenVerificationController(IRegisterRepository registerRepository,
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IResult> VerifyTokenAsync(TokenVerifyRequest tokenVerifyRequest)
     {
-        if (tokenVerifyRequest.Id < 0 || string.IsNullOrEmpty(tokenVerifyRequest.Token))
+        if (tokenVerifyRequest is null || tokenVerifyRequest.Id < 0 || string.IsNullOrEmpty(tokenVerifyRequest.Token))
             return Results.BadRequest();
 
         var user = await userRepository.GetUserByIdAsync(tokenVerifyRequest.Id);

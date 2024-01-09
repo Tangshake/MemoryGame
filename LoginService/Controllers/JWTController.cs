@@ -30,13 +30,14 @@ namespace LoginService.Controllers
                 if (refreshToken is null)
                     return Results.Unauthorized();
 
+                // When refresh token is expired return unauthorized
+                if(DateTime.Compare(refreshToken.Expire, DateTime.Now) < 0)
+                    return Results.Unauthorized();
+
                 // When refresh tokens do not matches return unauthorized
                 if (!refreshTokenRequest.RefreshToken.Equals(refreshToken.Token))
                     return Results.Unauthorized();
 
-                // When refresh token is expired return unauthorized
-                if(DateTime.Compare(refreshToken.Expire, DateTime.Now) < 0)
-                    return Results.Unauthorized();
 
                 // So far we know both refresh tokens matches and are not expired
                 // Extract expired jwt claims and compare it with users data
@@ -73,6 +74,10 @@ namespace LoginService.Controllers
                 // Get Jwt secret key from database
                 var key = await tokenRepository.GetJwtSecKeyAsync();
 
+                // If there is no user with provided id return Unauthorized
+                if (key is null)
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+
                 // Generate Jwt token
                 var jwtToken = tokenManager.CreateJwtToken(key, new List<Claim> { new Claim(JwtRegisteredClaimNames.Email, user.Email), new Claim(JwtRegisteredClaimNames.Name, user.Name) });
 
@@ -80,7 +85,10 @@ namespace LoginService.Controllers
                 var refreshToken = tokenManager.CreateRefreshToken(16);
 
                 // Save refresh token to the database
-                var result = tokenRepository.CreateRefreshTokenAsync(user.Id, refreshToken);
+                var result = await tokenRepository.CreateRefreshTokenAsync(user.Id, refreshToken);
+
+                if(result != 1)
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
 
                 // Construct return object
                 var refreshTokenResponse = new RefreshTokenResponse { JwtToken = jwtToken, RefreshToken = refreshToken.Token };
