@@ -26,6 +26,7 @@ main {
     padding: 6px 6px;
 
     border-bottom: 2px solid white;
+    background-color: darkslategrey;
 }
 
 .header-score {

@@ -1,5 +1,19 @@
 Memory Game
 =
+## Screenshots  
+<p align="center">
+  <img src="https://cdn1.iconfinder.com/data/icons/operating-system-flat-1/30/windows_10-512.png" alt="Windows" height="40" />
+</p>
+
+<figure class="image">
+    <p align="center">
+        <img src="ReadMeImages/InGame.png" alt="" width=300>
+        <figcaption align="center">InGameScreen</figcaption>
+    </p>
+</figure>  
+
+</br></br>
+
 <figure class="image">
     <p align="center">
         <img src="ReadMeImages/MemoryGeneralSchema.svg" alt="">
